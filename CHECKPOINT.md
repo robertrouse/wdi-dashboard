@@ -41,8 +41,8 @@ Start with `CLAUDE.md` — invariants, environment notes, and open items.
 ## Notes / gotchas
 - The authoring session's sandbox could NOT reach api.worldbank.org or
   fonts.googleapis.com. Claude Code on Robert's Mac can. This means:
-  the API refresh path is untested locally, and the type has never been
-  reviewed in Kanit (screenshots used a fallback face).
+  the API refresh path is untested locally. (Kanit has since been verified
+  rendering correctly on the live site at desktop width.)
 - `WDI_CSV_tall.csv` is 1.1 GB; always stream it, never read it whole.
 - Vite needs delete permission on `dist/`; in a Cowork session that requires
   `device_request_delete_permission` on the WDI folder.

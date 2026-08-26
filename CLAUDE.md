@@ -54,7 +54,22 @@ Source material lives in the parent folder `../`:
 
 ## Brand tokens
 
-Defined in `src/index.css`. Kanit (Google Fonts) throughout.
+Defined in `src/index.css`. Kanit throughout, loaded from the Google Fonts CDN
+in `index.html`.
+
+**On Kanit's provenance** — worth stating because it is easy to assume
+otherwise: Kanit is *not* a bespoke Action typeface. It is an open-source
+family by Cadson Demak (a Thai foundry), published on Google Fonts under the
+SIL Open Font License 1.1. The Action brand book says so itself on p.36 ("As a
+Google font, Kanit also offers the advantage of accessibility and ease of
+use"). action.co self-hosts its own woff2 cuts, but they are the same font —
+canvas glyph metrics for Kanit Light measured identically on action.co and on
+this dashboard. There is no licensing constraint on using it here.
+
+If zero third-party requests ever becomes a requirement, self-hosting is
+permitted by the OFL and is the same approach action.co takes: drop woff2 files
+in `public/fonts/` and replace the `<link>` in `index.html` with local
+`@font-face` rules. Not needed today.
 Blue Raven `#0A1044` · Blue Maven `#4655E4` · Red Cerise `#F8227D` ·
 Blue Ice `#00CEEA` · Background `#F4FBFF` · Cool Grey `#D8E9F4` ·
 Neutral Grey `#C5CED6` · Warm Grey `#50687A`.
@@ -140,10 +155,13 @@ Repo: <https://github.com/robertrouse/wdi-dashboard>
    or drop `schedule` events on low-traffic repos. Check the Actions tab after
    the 1st of the month.
 
-3. **Type has never been reviewed in Kanit.** The authoring sandbox could not
-   reach Google Fonts, so every screenshot rendered in a fallback face. Layout
-   was verified; typography was not. Worth one pass at real sizes — especially
-   the rotated column headers in `Matrix.jsx`, which are tight.
+3. **Type reviewed in Kanit at desktop width — CLOSED for that case.**
+   Verified live in Chrome: Kanit loads from the Google Fonts CDN, weights
+   300/400/500/600/700 all resolve, and the rotated column headers in
+   `Matrix.jsx` are legible. Still unreviewed at narrow/tablet widths, where the
+   glyph matrix overflows into its horizontal scroller and the rightmost column
+   clips at the container edge. The scroll affordance is not obvious — consider
+   a fade or shadow on the right edge of the scroll container.
 
 4. **`scripts/build_data.py` hardcodes nothing about indicator count, but
    `refresh-data.yml`'s sanity gate asserts exactly 15.** If you add or remove
