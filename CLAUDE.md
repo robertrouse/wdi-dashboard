@@ -116,7 +116,17 @@ which is why the committed bundle was seeded from the bulk CSV and why
 certainly *can* reach the API. **Verifying the refresh path end to end is the
 single most useful thing you can do early.**
 
-Verified on this machine: Node v22.23.2, npm 10.9.8.
+Verified on this machine: Node v22.22.0, npm 10.9.4. (An earlier note said
+22.23.2 / 10.9.8; the running toolchain is the pair above.)
+
+**The sandbox left `node_modules` half-installed.** Every
+`@rollup/rollup-*` platform directory was created but *empty* — the optional
+native binaries could not be downloaded without a network. `npm run refresh`
+still worked (pure Node), but `npm run build` died with
+`Cannot find module @rollup/rollup-darwin-arm64`. Fixed by `npm ci`, which
+restores from `package-lock.json` and touches no committed file. CI was never
+affected. If a fresh clone or a sandboxed session ever shows this again, run
+`npm ci` before concluding anything is wrong with the repo.
 
 ---
 
@@ -130,30 +140,56 @@ Repo: <https://github.com/robertrouse/wdi-dashboard>
 - Deploy and refresh workflows have both run green, including the full
   refresh → sanity-gate → commit → redeploy chain.
 - The live bundle is API-sourced, data through 2025.
-- **There is one local commit not yet pushed:** `4f39a52` (the `refresh:diff`
-  tool and the 2-letter-code fallback). Push it early — the fallback is the
-  fix for open item 1 below and it should be exercised on the next refresh.
+- Everything through `21b53ed` is pushed; origin and local are in sync.
 
 ## Open items
 
-1. **Three countries lost internet-users readings on the first API refresh** —
-   Turkmenistan, Vanuatu, Samoa — despite being well inside the staleness
-   window, so this is not the window sliding. Hypothesis: the World Bank API
-   returns an empty `countryiso3code` for some economies and the row filter
-   dropped them. `refresh_data.mjs` now falls back to `row.country.id` (the
-   2-letter code), **but that fix was never executed** — no API access in the
-   authoring session. To close this out:
+1. **CLOSED (2026-08-26) — the three missing internet-users readings are real,
+   not a pipeline bug.** The refresh path has now been run end to end against
+   the live API on Robert's Mac.
+
+   The `countryiso3code` hypothesis was **wrong**. The fallback never fired
+   (`rescued` was 0) and TKM / VUT / WSM stayed absent. Inspecting the raw API
+   rows shows why: `IT.NET.USER.ZS` for those three economies now ends at
+
+   | | last non-null in API | value | CSV seed had |
+   |---|---|---|---|
+   | Samoa (WSM)        | 2014 | 21.20 | 2023 = 58.1386 |
+   | Vanuatu (VUT)      | 2015 | 22.35 | 2023 = 45.7313 |
+   | Turkmenistan (TKM) | 2016 | 17.99 | 2017 = 21.251  |
+
+   The World Bank **withdrew the recent ITU estimates** for these countries
+   between the January 2026 bulk-CSV snapshot and the current API vintage. The
+   API returns explicit `null`s for every later year — including years the CSV
+   has dense values for. With `MAX_STALENESS = 8` against a latest year of
+   2025, the cutoff is 2017, so all three fall out. **`condense()` is doing
+   exactly the right thing**, and `NA` is the honest reading (invariant 4).
+   The three countries still carry their other 12–14 indicators.
+
+   Do not "fix" this. If it ever needs re-checking:
    ```bash
-   npm run refresh        # watch for "N rows matched via the 2-letter code fallback"
-   npm run refresh:diff   # do TKM / VUT / WSM come back for the `net` indicator?
+   curl -s "https://api.worldbank.org/v2/country/WSM/indicator/IT.NET.USER.ZS?format=json&per_page=200"
    ```
-   If they do not, the hypothesis is wrong and it needs a fresh look — inspect
-   the raw API rows for those countries rather than assuming.
+
+   Two things worth knowing that fell out of this:
+   - **The 2-letter fallback is dead code, and harmlessly so.** Empty
+     `countryiso3code` rows *do* exist — 80 of them in that indicator — but
+     every one is an income-group aggregate (`XD`, `XM`, `XN`, `XT`, `XY`).
+     Those are absent from `byIso2` (which is built only from real countries),
+     so they resolve to `undefined` and get dropped, which is correct. Keep the
+     fallback as cheap insurance; just don't expect it to do anything.
+   - **A CSV-seeded bundle and an API-seeded bundle are not interchangeable in
+     content**, only in shape. The bulk CSV is a frozen vintage and can carry
+     readings the live API has since retracted. When they disagree, the API is
+     current and the CSV is history. The spot-check values in this file are
+     labelled "2024 vintage" for that reason — check them against the CSV, not
+     against a fresh API pull.
 
 2. **The monthly schedule has not fired yet.** Every green run so far was a
    `workflow_dispatch` or a push. They take the same path, but GitHub can delay
-   or drop `schedule` events on low-traffic repos. Check the Actions tab after
-   the 1st of the month.
+   or drop `schedule` events on low-traffic repos. The repo is only days old,
+   so the first scheduled run is **1 September 2026, 06:00 UTC** — nothing to
+   diagnose before then. Check with `gh run list --event schedule`.
 
 3. **Type reviewed in Kanit at desktop width — CLOSED for that case.**
    Verified live in Chrome: Kanit loads from the Google Fonts CDN, weights

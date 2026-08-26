@@ -31,12 +31,29 @@ Start with `CLAUDE.md` — invariants, environment notes, and open items.
   presets, attention filter and empty state: zero console errors.
 - Full CI chain proven live: API pull → sanity gate → commit → redeploy → Pages.
 
+## Refresh path verified on real hardware — 2026-08-26
+Run on Robert's Mac with live API access, which the authoring session lacked.
+
+- `git push` done; origin is level with local at `21b53ed`.
+- `npm run refresh` completed against `api.worldbank.org`: 217 countries ×
+  15 indicators, 2904 observations for `IT.NET.USER.ZS`.
+- `npm run refresh:diff` reported **0 gained, 0 lost** and `git status` was
+  clean — the API-sourced bundle reproduced byte-for-byte. The pipeline is
+  deterministic against an unchanged API vintage.
+- **Open item 1 is closed, and the hypothesis in it was wrong.** TKM / VUT /
+  WSM are missing internet-users readings because the World Bank retracted
+  those ITU estimates, not because of a code-matching bug. Full write-up in
+  `CLAUDE.md`.
+- `npm run build` initially failed on a half-installed `node_modules` left by
+  the sandbox (empty `@rollup/rollup-*` dirs). `npm ci` fixed it; the build is
+  clean at 228.93 kB / 71.80 kB gzipped. See the environment note in
+  `CLAUDE.md`.
+
 ## Immediate next actions
-1. `git push` — one local commit (`4f39a52`) is ahead of origin.
-2. `npm run refresh && npm run refresh:diff` — first real test of the
-   2-letter-code fallback. See open item 1 in `CLAUDE.md`.
-3. Check the Actions tab after the 1st: the monthly `schedule` trigger has
-   never fired (every run so far was dispatch or push).
+1. Check `gh run list --event schedule` after **1 Sept 2026** — the monthly
+   trigger has still never fired, and the repo is too new for it to have.
+2. Narrow/tablet-width review of the glyph matrix (open item 3): the rightmost
+   column clips and the horizontal scroll affordance is not obvious.
 
 ## Notes / gotchas
 - The authoring session's sandbox could NOT reach api.worldbank.org or
