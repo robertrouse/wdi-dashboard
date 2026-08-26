@@ -85,19 +85,33 @@ const countries = await fetchCountries();
 const valid = new Set(countries.map((c) => c.c));
 console.error(`[refresh] ${countries.length} countries`);
 
+// The API returns an empty countryiso3code for some economies, so a naive
+// filter on that field silently drops them. Fall back to the 2-letter code
+// carried in row.country.id, which is always populated.
+const byIso2 = new Map(countries.filter((c) => c.iso2).map((c) => [c.iso2, c.c]));
+const resolve = (row) => {
+  const iso3 = row.countryiso3code;
+  if (iso3 && valid.has(iso3)) return iso3;
+  const iso2 = row.country?.id;
+  return iso2 ? byIso2.get(iso2) ?? null : null;
+};
+
 const obs = {}; // country -> indicatorId -> {year: value}
+let rescued = 0;
 for (const ind of indicators) {
   const rows = await fetchIndicator(ind.code);
   let n = 0;
   for (const row of rows) {
     if (row.value === null) continue;
-    const cc = row.countryiso3code;
-    if (!valid.has(cc)) continue;
+    const cc = resolve(row);
+    if (!cc) continue;
+    if (!row.countryiso3code || !valid.has(row.countryiso3code)) rescued++;
     ((obs[cc] ??= {})[ind.id] ??= {})[Number(row.date)] = row.value;
     n++;
   }
   console.error(`[refresh] ${ind.code.padEnd(24)} ${String(n).padStart(6)} observations`);
 }
+if (rescued) console.error(`[refresh] ${rescued} rows matched via the 2-letter code fallback`);
 
 const latestYear = Math.max(
   ...Object.values(obs).flatMap((byInd) => Object.values(byInd).flatMap((byYear) => Object.keys(byYear).map(Number)))

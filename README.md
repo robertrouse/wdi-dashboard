@@ -96,6 +96,38 @@ You can always force a run from the **Actions** tab → *Refresh WDI data* →
 *Run workflow*, which is the useful button when the World Bank announces a
 release mid-month.
 
+### Refreshing on demand
+
+Two ways, both safe to run whenever.
+
+**From GitHub — no local setup.** Actions tab → *Refresh WDI data* → *Run
+workflow*. Takes about 90 seconds and does everything: pull, sanity-check,
+commit if changed, redeploy. This is the same job the monthly schedule runs.
+
+**Locally — when you want to see what changed before it goes live:**
+
+```bash
+npm run refresh        # pull from the World Bank API into public/data/wdi.json
+npm run refresh:diff   # readable summary of what changed vs the last commit
+git add public/data/wdi.json && git commit -m "data: refresh" && git push
+```
+
+The push triggers a rebuild and deploy on its own.
+
+`refresh:diff` exists because the bundle is a single minified line — `git diff`
+reports "1 insertion, 1 deletion" whether one country moved or the whole thing
+broke. The summary shows, per indicator, how many countries carry a reading,
+how many gained a newer observation, and **how many lost a reading they
+previously had**. That last column is the one to look at: a handful of losses
+is normal (see below), but a large number means something went wrong upstream.
+
+Readings drop out legitimately when the staleness window slides. The bundle
+keeps a country's latest observation only if it is within 8 years of the newest
+year anywhere in the data, so when the newest year advances from 2024 to 2025,
+2016-vintage readings age out. That is the intended behaviour — it stops the
+dashboard from presenting decade-old numbers as current — but it does mean an
+otherwise clean refresh can show a dozen losses.
+
 ### Building the bundle locally
 
 Two paths produce an identical bundle shape:

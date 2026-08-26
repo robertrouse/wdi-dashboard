@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "refresh": "node scripts/refresh_data.mjs"
+    "refresh": "node scripts/refresh_data.mjs",
+    "refresh:diff": "node scripts/diff_bundle.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
