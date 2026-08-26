@@ -27,7 +27,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Pin to the branch tip, not the default github.sha. On a workflow_call
+      # github.sha is the commit that triggered the CALLER — for the monthly
+      # refresh that is the commit *before* its own data commit, so the default
+      # would rebuild the previous bundle and silently deploy stale data.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
