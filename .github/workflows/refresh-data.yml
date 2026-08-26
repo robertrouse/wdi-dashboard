@@ -1,20 +1,28 @@
 name: Refresh WDI data
 
-# The World Bank revises indicators continuously and publishes most annual
-# series once or twice a year, so weekly is comfortably often enough. The job
-# only commits when the bundle actually changed, which keeps the history a log
-# of real data revisions rather than a log of cron firings.
+# These are annual series. The World Bank revises them continuously but
+# publishes most of them once or twice a year, so a monthly pull is already
+# well ahead of the publication rate. The job commits only when the bundle
+# actually changed, which keeps the history a log of real data revisions
+# rather than a log of cron firings.
+#
+# workflow_dispatch lets you force a refresh by hand from the Actions tab
+# whenever the World Bank announces a release.
 on:
   schedule:
-    - cron: "0 6 * * 1"      # Mondays, 06:00 UTC
+    - cron: "0 6 1 * *"      # 1st of each month, 06:00 UTC
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +32,9 @@ jobs:
       - name: Rebuild bundle from the World Bank API
         run: node scripts/refresh_data.mjs
 
+      # A failed or partial API pull must never overwrite good data. If any of
+      # these checks trips, the job fails with the bundle uncommitted and the
+      # live site keeps serving the last known-good version.
       - name: Sanity-check the result
         run: |
           node -e '
@@ -39,9 +50,11 @@ jobs:
           '
 
       - name: Commit if changed
+        id: commit
         run: |
           if git diff --quiet -- public/data/wdi.json; then
-            echo "No change in the World Bank data this week."
+            echo "No change in the World Bank data this month."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name  "github-actions[bot]"
@@ -49,3 +62,11 @@ jobs:
           git add public/data/wdi.json
           git commit -m "data: refresh WDI bundle from World Bank API"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  # Only runs when the data actually moved. See the note in deploy.yml for why
+  # this call is necessary rather than relying on the push above.
+  redeploy:
+    needs: refresh
+    if: needs.refresh.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml

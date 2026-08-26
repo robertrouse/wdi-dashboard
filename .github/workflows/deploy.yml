@@ -1,8 +1,17 @@
-name: Deploy to GitHub Pages
+name: Build and deploy
 
+# Three entry points:
+#   push to main    — you changed code
+#   workflow_call   — the monthly data refresh changed the bundle and is
+#                     invoking this directly. This matters: a commit pushed by
+#                     GITHUB_TOKEN does NOT trigger other workflows, so without
+#                     this the refreshed data would land in the repo and never
+#                     reach the site.
+#   workflow_dispatch — you want to redeploy by hand
 on:
   push:
     branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -25,8 +34,8 @@ jobs:
           cache: npm
       - run: npm ci
       # BASE_PATH must match the repository name so asset URLs resolve under
-      # https://<user>.github.io/<repo>/. Derived here so renaming the repo
-      # does not silently break the deploy.
+      # https://<user>.github.io/<repo>/. Derived from the repo itself so
+      # renaming it does not silently break the deploy.
       - run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
