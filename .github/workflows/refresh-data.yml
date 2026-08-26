@@ -1,0 +1,51 @@
+name: Refresh WDI data
+
+# The World Bank revises indicators continuously and publishes most annual
+# series once or twice a year, so weekly is comfortably often enough. The job
+# only commits when the bundle actually changed, which keeps the history a log
+# of real data revisions rather than a log of cron firings.
+on:
+  schedule:
+    - cron: "0 6 * * 1"      # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Rebuild bundle from the World Bank API
+        run: node scripts/refresh_data.mjs
+
+      - name: Sanity-check the result
+        run: |
+          node -e '
+            const b = require("./public/data/wdi.json");
+            const errs = [];
+            if (b.countries.length < 150) errs.push(`only ${b.countries.length} countries`);
+            if (b.indicators.length !== 15) errs.push(`${b.indicators.length} indicators, expected 15`);
+            const withGdp = Object.values(b.series).filter(s => s.gdp?.v > 0).length;
+            if (withGdp < 150) errs.push(`only ${withGdp} countries have GDP`);
+            if (b.yearSpan[1] < new Date().getFullYear() - 3) errs.push(`stale: latest year ${b.yearSpan[1]}`);
+            if (errs.length) { console.error("REFUSING TO COMMIT:", errs.join("; ")); process.exit(1); }
+            console.log(`ok — ${b.countries.length} countries, data through ${b.yearSpan[1]}`);
+          '
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- public/data/wdi.json; then
+            echo "No change in the World Bank data this week."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/wdi.json
+          git commit -m "data: refresh WDI bundle from World Bank API"
+          git push

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+data/_*.json
+data/_*.csv
+data/candidates.txt

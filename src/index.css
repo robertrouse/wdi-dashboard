@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Action brand tokens — from the Action Brand Guidelines (Brand Palette p.23,
+   Typeface p.36, Typestyles p.37). Kanit is the brand font; type scale follows
+   the book's ratios (headline ~240% of body, subhead ~170%).
+
+   Legibility rule for this dashboard: nothing below 15px, table text 17px+.
+   ========================================================================== */
+:root {
+  /* Primary */
+  --blue-raven:  #0A1044;
+  --blue-maven:  #4655E4;
+  --red-cerise:  #F8227D;
+  --blue-ice:    #00CEEA;
+  --white:       #FFFFFF;
+  --background:  #F4FBFF;
+
+  /* Secondary */
+  --cool-grey:    #D8E9F4;
+  --neutral-grey: #C5CED6;
+  --warm-grey:    #50687A;
+  --prince-violet:#525676;
+  --king-violet:  #222856;
+
+  /* Tints & shades used for data marks (brand book pp.28-29) */
+  --maven-6: #0D00AA;
+  --maven-4: #6A7EF1;
+  --maven-2: #AEBDFE;
+  --cerise-6:#9B004C;
+  --cerise-4:#FB6BA8;
+  --cerise-2:#FECFE3;
+  --ice-6:   #0082A6;
+  --ice-4:   #58DFF2;
+  --ice-2:   #C9F4FB;
+  --raven-4: #3F446C;
+  --raven-2: #9496AD;
+
+  /* Expanded palette — used sparingly, per p.30 ("accentuate, don't dominate") */
+  --saffron:  #FFE500;
+  --blaze:    #FF9900;
+  --jade:     #3FB07A;
+
+  /* Semantic roles for KPI performance */
+  --perf-strong: var(--blue-maven);
+  --perf-mid:    var(--blaze);
+  --perf-weak:   var(--red-cerise);
+  --perf-none:   var(--neutral-grey);
+
+  /* Surfaces */
+  --ink:        var(--blue-raven);
+  --ink-soft:   #3D4A6B;
+  --rule:       #DCE7F2;
+  --rule-strong:#B9CDDF;
+  --surface:    var(--white);
+  --surface-alt:#EEF6FD;
+
+  /* Type scale — body 17px base */
+  --t-body:   17px;
+  --t-small:  15px;
+  --t-value:  22px;
+  --t-sub:    29px;   /* ~170% */
+  --t-head:   41px;   /* ~240% */
+
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(10,16,68,.06), 0 8px 28px rgba(10,16,68,.08);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--ink);
+  font-family: "Kanit", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-weight: 300;                 /* Kanit Light for body, per p.37 */
+  font-size: var(--t-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+
+button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+
+/* All-caps reserved for small type inside data views (p.37) */
+.eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--warm-grey);
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+:focus-visible {
+  outline: 3px solid var(--blue-ice);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-thumb { background: var(--neutral-grey); border-radius: 8px; border: 3px solid var(--background); }
+::-webkit-scrollbar-track { background: transparent; }

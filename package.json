@@ -1,0 +1,21 @@
+{
+  "name": "wdi-kpi-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Multi-metric KPI dashboard built on World Bank World Development Indicators",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "refresh": "node scripts/refresh_data.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.0"
+  }
+}

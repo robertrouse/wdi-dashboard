@@ -1,0 +1,181 @@
+import { useMemo, useState } from "react";
+
+/* --------------------------------------------------------------------------
+   Control rail.
+
+   Mirrors the right-hand filter column of the original dashboard: view level,
+   group membership, metric selection, and a "show only the ones in trouble"
+   escape hatch. One structure serving many questions is the whole argument of
+   the chapter — every control here changes what the same components render
+   rather than switching to a different sheet.
+   -------------------------------------------------------------------------- */
+
+const S = {
+  section: { marginBottom: 26 },
+  h: {
+    fontSize: "13px", fontWeight: 600, letterSpacing: "0.14em",
+    textTransform: "uppercase", color: "var(--blue-maven)",
+    marginBottom: 10, display: "block",
+  },
+  radioRow: {
+    display: "flex", alignItems: "center", gap: 10, padding: "7px 0",
+    cursor: "pointer", fontSize: "16px", lineHeight: 1.3,
+  },
+  chip: (on) => ({
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "6px 12px", borderRadius: 999, cursor: "pointer",
+    fontSize: "14.5px", fontWeight: on ? 500 : 300,
+    border: `1.5px solid ${on ? "var(--blue-maven)" : "var(--rule-strong)"}`,
+    background: on ? "var(--blue-maven)" : "var(--white)",
+    color: on ? "var(--white)" : "var(--ink-soft)",
+    transition: "all .12s ease",
+  }),
+  btn: {
+    padding: "6px 10px", fontSize: "14px", borderRadius: 6, cursor: "pointer",
+    border: "1.5px solid var(--rule-strong)", background: "var(--white)", color: "var(--ink-soft)",
+  },
+};
+
+function Radio({ name, value, checked, onChange, label, hint }) {
+  return (
+    <label style={S.radioRow}>
+      <input type="radio" name={name} value={value} checked={checked}
+             onChange={() => onChange(value)}
+             style={{ accentColor: "var(--blue-maven)", width: 17, height: 17, flexShrink: 0 }} />
+      <span>
+        <span style={{ fontWeight: checked ? 500 : 300 }}>{label}</span>
+        {hint && <span style={{ display: "block", fontSize: "13.5px", color: "var(--warm-grey)", lineHeight: 1.3 }}>{hint}</span>}
+      </span>
+    </label>
+  );
+}
+
+export default function FilterPanel({
+  bundle, view, setView, regions, activeRegions, toggleRegion,
+  indicators, activeIndicatorIds, toggleIndicator, focusId, setFocus,
+  countries, selected, setSelected, onlyWeak, setOnlyWeak, presets, applyPreset, activePreset,
+}) {
+  const [q, setQ] = useState("");
+  const matches = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    if (!t) return [];
+    return countries.filter((c) => c.n.toLowerCase().includes(t)).slice(0, 8);
+  }, [q, countries]);
+
+  return (
+    <aside
+      style={{
+        width: 318, flexShrink: 0, background: "var(--white)",
+        borderLeft: "1px solid var(--rule)", padding: "26px 24px 60px",
+        overflowY: "auto", height: "100%",
+      }}
+    >
+      <div style={S.section}>
+        <span style={S.h}>View level</span>
+        <Radio name="view" value="country" checked={view === "country"} onChange={setView}
+               label="Countries" hint="One row per country, grouped by region" />
+        <Radio name="view" value="region" checked={view === "region"} onChange={setView}
+               label="Regions" hint="Median of the selected countries in each region" />
+      </div>
+
+      <div style={S.section}>
+        <span style={S.h}>Country set</span>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 12 }}>
+          {presets.map((p) => (
+            <button key={p.id} onClick={() => applyPreset(p.id)}
+                    style={S.chip(activePreset === p.id)} title={p.hint}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <input
+          value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder="Add a country…"
+          style={{
+            width: "100%", padding: "9px 12px", fontSize: "15.5px",
+            border: "1.5px solid var(--rule-strong)", borderRadius: 8,
+            background: "var(--background)",
+          }}
+        />
+        {matches.length > 0 && (
+          <div style={{ border: "1px solid var(--rule)", borderRadius: 8, marginTop: 6, overflow: "hidden" }}>
+            {matches.map((c) => {
+              const on = selected.includes(c.c);
+              return (
+                <button key={c.c}
+                  onClick={() => { setSelected(on ? selected.filter((x) => x !== c.c) : [...selected, c.c]); setQ(""); }}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left", padding: "8px 12px",
+                    border: "none", borderBottom: "1px solid var(--rule)",
+                    background: on ? "var(--surface-alt)" : "var(--white)",
+                    fontSize: "15.5px", cursor: "pointer",
+                  }}>
+                  {on ? "✓ " : "+ "}{c.n}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div style={{ marginTop: 10, fontSize: "14px", color: "var(--warm-grey)" }}>
+          {selected.length} countries selected
+          {selected.length > 0 && (
+            <button onClick={() => setSelected([])} style={{ ...S.btn, marginLeft: 8, padding: "3px 8px" }}>clear</button>
+          )}
+        </div>
+      </div>
+
+      <div style={S.section}>
+        <span style={S.h}>Regions shown</span>
+        {regions.map((r, i) => (
+          <label key={r} style={{ ...S.radioRow, padding: "5px 0" }}>
+            <input type="checkbox" checked={activeRegions.includes(i)} onChange={() => toggleRegion(i)}
+                   style={{ accentColor: "var(--blue-maven)", width: 17, height: 17, flexShrink: 0 }} />
+            <span style={{ fontSize: "15.5px" }}>{r}</span>
+          </label>
+        ))}
+      </div>
+
+      <div style={S.section}>
+        <span style={S.h}>Focus metric</span>
+        <select value={focusId} onChange={(e) => setFocus(e.target.value)}
+          style={{
+            width: "100%", padding: "10px 12px", fontSize: "16px", fontWeight: 500,
+            border: "1.5px solid var(--blue-maven)", borderRadius: 8,
+            background: "var(--white)", color: "var(--blue-raven)", cursor: "pointer",
+          }}>
+          {indicators.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
+        </select>
+        <p style={{ fontSize: "13.5px", color: "var(--warm-grey)", margin: "8px 0 0", lineHeight: 1.4 }}>
+          The focus metric gets the value, change and trend columns. All other
+          metrics stay visible as glyphs.
+        </p>
+      </div>
+
+      <div style={S.section}>
+        <span style={S.h}>Metrics in the matrix</span>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {indicators.map((i) => (
+            <button key={i.id} onClick={() => toggleIndicator(i.id)}
+                    style={S.chip(activeIndicatorIds.includes(i.id))} title={i.fullName}>
+              {i.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={S.section}>
+        <span style={S.h}>Attention filter</span>
+        <label style={S.radioRow}>
+          <input type="checkbox" checked={onlyWeak} onChange={(e) => setOnlyWeak(e.target.checked)}
+                 style={{ accentColor: "var(--red-cerise)", width: 17, height: 17, flexShrink: 0 }} />
+          <span>
+            <span style={{ fontWeight: onlyWeak ? 500 : 300 }}>Only rows below benchmark</span>
+            <span style={{ display: "block", fontSize: "13.5px", color: "var(--warm-grey)", lineHeight: 1.3 }}>
+              on the focus metric
+            </span>
+          </span>
+        </label>
+      </div>
+    </aside>
+  );
+}
