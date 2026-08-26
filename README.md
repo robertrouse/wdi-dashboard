@@ -175,7 +175,10 @@ PLAN.md / CHECKPOINT.md     design decisions and build state
 - Values are each country's **most recent available observation**, which is not
   the same year for every country. The year is printed under every value.
 - Region groupings are the World Bank's own and were revised in 2024: Pakistan
-  and Afghanistan moved from South Asia to the Middle East & North Africa group.
+  and Afghanistan moved out of South Asia into what the API now returns as
+  "Middle East, North Africa, Afghanistan & Pakistan". South Asia is therefore
+  smaller here than in older WDI vintages, and the region label changes
+  depending on whether the bundle came from the API or from an older bulk CSV.
 - Region rows are **medians of the selected member countries**, not weighted
   aggregates. Summing life expectancy or averaging unweighted percentages would
   be wrong; the median is honest and the tooltip says so.

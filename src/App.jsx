@@ -269,8 +269,9 @@ function Method({ bundle }) {
       <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", marginTop: -6 }}>
         Regions are the World Bank's own classification as shipped in the WDI
         metadata. That grouping was revised in 2024 — Pakistan and Afghanistan
-        now sit with the Middle East &amp; North Africa group rather than South
-        Asia, which is why South Asia looks smaller here than it once did.
+        moved out of South Asia into the Middle East, North Africa, Afghanistan
+        &amp; Pakistan group, which is why South Asia looks smaller here than it
+        once did.
       </p>
     </section>
   );
