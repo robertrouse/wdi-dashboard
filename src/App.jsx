@@ -43,7 +43,12 @@ export default function App() {
   const [detailRowId, setDetailRowId] = useState(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/wdi.json`)
+    // no-cache forces a revalidation against the server's ETag rather than
+    // serving a stale copy from disk. The JS bundle is content-hashed so it
+    // busts itself, but wdi.json keeps its name across refreshes — without
+    // this, a returning visitor could see last month's data for as long as
+    // the CDN max-age lasts.
+    fetch(`${import.meta.env.BASE_URL}data/wdi.json`, { cache: "no-cache" })
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(setBundle)
       .catch((e) => setErr(e.message));
