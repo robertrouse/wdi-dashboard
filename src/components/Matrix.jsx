@@ -33,7 +33,7 @@ function perfWord(perf, ind, scale) {
 }
 
 export default function Matrix({
-  rows, indicators, focus, scales, bundle, onSelectRow, selectedRow,
+  rows, indicators, focus, scales, bundle, onSelectRow, selectedRow, onFocusMetric,
 }) {
   const glyphInds = indicators;
   const regionView = rows.some((r) => r.kind === "region");
@@ -67,23 +67,53 @@ export default function Matrix({
             <th style={{ ...th, textAlign: "left", minWidth: 178, paddingLeft: 18 }}>
               {bundle.yearSpan[0]}–{bundle.yearSpan[1]} trend
             </th>
-            {glyphInds.map((ind) => (
-              <th key={ind.id} style={{ ...th, width: 44, padding: "0 3px 10px", height: 118, verticalAlign: "bottom" }}>
-                <Tooltip content={<IndicatorCard ind={ind} />}>
-                  <span
-                    style={{
-                      writingMode: "vertical-rl", transform: "rotate(180deg)",
-                      fontSize: "13.5px", fontWeight: ind.id === focus.id ? 600 : 400,
-                      letterSpacing: "0.02em", whiteSpace: "nowrap",
-                      color: ind.id === focus.id ? "var(--blue-maven)" : "var(--ink-soft)",
-                      maxHeight: 104, overflow: "hidden",
-                    }}
+            {glyphInds.map((ind) => {
+              const isFocus = ind.id === focus.id;
+              return (
+                <th
+                  key={ind.id}
+                  onClick={() => onFocusMetric?.(ind.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onFocusMetric?.(ind.id); }
+                  }}
+                  tabIndex={onFocusMetric && !isFocus ? 0 : undefined}
+                  role={onFocusMetric && !isFocus ? "button" : undefined}
+                  aria-label={onFocusMetric && !isFocus ? `Focus on ${ind.label}` : undefined}
+                  title={onFocusMetric && !isFocus ? `Show ${ind.label} in the value, change and trend columns` : undefined}
+                  style={{
+                    ...th, width: 44, padding: "0 3px 10px", height: 118, verticalAlign: "bottom",
+                    cursor: onFocusMetric && !isFocus ? "pointer" : "default",
+                    background: isFocus ? "rgba(70,85,228,.07)" : undefined,
+                  }}
+                >
+                  <Tooltip
+                    cursor={onFocusMetric && !isFocus ? "pointer" : "help"}
+                    content={
+                      <IndicatorCard
+                        ind={ind}
+                        extra={!isFocus && (
+                          <div style={{ fontSize: "14.5px", fontWeight: 500, color: "var(--blue-maven)", marginBottom: 6 }}>
+                            Click to make this the focus metric
+                          </div>
+                        )}
+                      />
+                    }
                   >
-                    {ind.short ?? ind.label}
-                  </span>
-                </Tooltip>
-              </th>
-            ))}
+                    <span
+                      style={{
+                        writingMode: "vertical-rl", transform: "rotate(180deg)",
+                        fontSize: "13.5px", fontWeight: isFocus ? 600 : 400,
+                        letterSpacing: "0.02em", whiteSpace: "nowrap",
+                        color: isFocus ? "var(--blue-maven)" : "var(--ink-soft)",
+                        maxHeight: 104, overflow: "hidden",
+                      }}
+                    >
+                      {ind.short ?? ind.label}
+                    </span>
+                  </Tooltip>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>

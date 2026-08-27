@@ -175,7 +175,22 @@ export default function App() {
       return s.perf === PERF.WEAK || s.perf === PERF.NONE;
     };
 
-    if (view === "region") return [worldRow(), ...dataRows.filter(keep)];
+    /* Everything is ordered by GDP, descending — regions, and countries within
+       each region. Economic weight is the ordering this audience already
+       carries in its head, so the largest economies sit where the eye lands
+       first.
+
+       It is deliberately NOT the focus metric. Ranking rows by whatever metric
+       happens to be in focus meant the whole table reshuffled on every metric
+       switch, which destroys the reader's map of where a country lives and
+       makes two metrics impossible to compare by scanning the same row
+       position. A fixed order costs a little ranking convenience and buys a
+       stable page. Missing GDP sorts last rather than first. */
+    const gdpInd = findInd("gdp");
+    const gdpOf = (row) => row.get(gdpInd.id)?.v ?? null;
+    const byGdpDesc = (a, b) => (gdpOf(b) ?? -Infinity) - (gdpOf(a) ?? -Infinity);
+
+    if (view === "region") return [worldRow(), ...dataRows.filter(keep).sort(byGdpDesc)];
 
     const byRegion = new Map();
     for (const r of dataRows.filter(keep)) {
@@ -184,24 +199,12 @@ export default function App() {
     }
 
     const out = [];
-    const ordered = [...byRegion.entries()].sort((a, b) =>
-      bundle.regions[a[0]].localeCompare(bundle.regions[b[0]])
-    );
+    // Sections are ordered by the region's own published GDP aggregate, not by
+    // the sum of whichever members the reader has selected.
+    const regionGdp = (ri) => regionRecord(bundle, ri, gdpInd)?.v ?? -Infinity;
+    const ordered = [...byRegion.entries()].sort((a, b) => regionGdp(b[0]) - regionGdp(a[0]));
     for (const [ri, kids] of ordered) {
-      // Within a region, rank by the focus metric so the best and worst
-      // performers sit at the ends rather than in alphabetical noise.
-      kids.sort((a, b) => {
-        // Target-band metrics have no meaningful high-to-low order — 0.2% and
-        // 12% inflation are both off a 2% target — so they sort by score.
-        if (focus.direction === "band") {
-          const ag = score(a.get(focus.id), focus, scales[focus.id]).goodness ?? -1;
-          const bg = score(b.get(focus.id), focus, scales[focus.id]).goodness ?? -1;
-          return bg - ag;
-        }
-        const av = a.get(focus.id)?.v ?? -Infinity;
-        const bv = b.get(focus.id)?.v ?? -Infinity;
-        return focus.direction === "down" ? av - bv : bv - av;
-      });
+      kids.sort(byGdpDesc);
       // The aggregate leads the section: it is the line the members below are
       // being read against, so it wants to be seen before them, not found after.
       out.push({ kind: "groupHeader", label: bundle.regions[ri], count: kids.length });
@@ -209,7 +212,7 @@ export default function App() {
       out.push(...kids);
     }
     return out;
-  }, [dataRows, view, focus, onlyWeak, scales, bundle]);
+  }, [dataRows, view, focus, onlyWeak, scales, bundle, indicators]);
 
   const detailRow = rows.find((r) => r.id === detailRowId) ?? null;
 
@@ -282,6 +285,7 @@ export default function App() {
               bundle={bundle}
               selectedRow={detailRowId}
               onSelectRow={(r) => setDetailRowId(detailRowId === r.id ? null : r.id)}
+              onFocusMetric={setFocusId}
             />
           )}
 
@@ -366,6 +370,13 @@ function Method({ bundle }) {
         of a percent is a well-known way to mislead: unemployment moving from 4.0% to 4.4% is
         not "up 10%". One rule for everything else is deliberate — a column mixing "+$520",
         "+0.3 yrs" and "−1.2 per 1,000" cannot be read down the page.
+      </p>
+      <p>
+        Rows are ordered by <strong>GDP, descending</strong> — regions, and countries within
+        each region — rather than by whichever metric is in focus. Ranking by the focus metric
+        reshuffled the whole table on every switch, which makes two metrics impossible to
+        compare by scanning the same row position. Click any metric name across the top to make
+        it the focus metric; the order does not move.
       </p>
       <p>
         Every section opens with its <strong>regional aggregate</strong> — the Bank's published

@@ -118,7 +118,16 @@ Source material lives in the parent folder `../`:
     than "−0.0%". Check that on the rounded NUMBER — a regex over the formatted
     string missed it once the unit moved to the end.
 
-13. **A sparkline's dotted reference and its colours are ONE decision.** The
+13. **Row order is GDP descending and does NOT follow the focus metric.** It
+    used to rank by whatever metric was in focus, which reshuffled the whole
+    table on every switch and made two metrics impossible to compare by
+    scanning the same row position. A fixed order costs a little ranking
+    convenience and buys a stable page. Sections are ordered by the region's own
+    published GDP aggregate, not by the sum of the selected members; missing GDP
+    sorts last. Clicking a metric's column header sets the focus metric, and the
+    order stays put — that is the point.
+
+14. **A sparkline's dotted reference and its colours are ONE decision.** The
    line a reader sees must be the line the colours are measured from. The rules
    live in `referenceFor()` in `src/lib/kpi.js`, and each exclusion was measured
    rather than guessed:

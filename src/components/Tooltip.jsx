@@ -12,7 +12,7 @@ import { useState, useRef, useLayoutEffect } from "react";
    nobody reads.
    -------------------------------------------------------------------------- */
 
-export default function Tooltip({ children, content, width = 400 }) {
+export default function Tooltip({ children, content, width = 400, cursor = "help" }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ left: 0, top: 0, place: "below" });
   const anchorRef = useRef(null);
@@ -36,7 +36,7 @@ export default function Tooltip({ children, content, width = 400 }) {
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         tabIndex={0}
-        style={{ display: "inline-flex", alignItems: "center", cursor: "help", outlineOffset: 3 }}
+        style={{ display: "inline-flex", alignItems: "center", cursor, outlineOffset: 3 }}
       >
         {children}
       </span>
