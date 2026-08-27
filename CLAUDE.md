@@ -125,6 +125,19 @@ Source material lives in the parent folder `../`:
 Defined in `src/index.css`. Kanit throughout, loaded from the Google Fonts CDN
 in `index.html`.
 
+**The mark is the Action octopus** (`src/components/ActionMark.jsx`). It is not
+redrawn — the path data was lifted out of the brand book PDF's own vector
+operators (p.14, "The Pictogram"), so the curves are the originals. White on
+Blue Raven is the treatment the book shows. The two eyes are filled with the
+background colour on purpose: on the original they mask the tentacle lines
+running behind them, so an `eyeFill` that does not match its background will
+look broken. Stroke follows `currentColor`.
+
+To re-extract it if the brand book is ever revised, the pictogram is
+`page.get_drawings()[3:8]` on page 13 (0-indexed) of `../Action Brand Book
+(1).pdf`; build the SVG from those items rather than `get_svg_image()`, which
+drags in the whole page's font paths and lands at ~187 KB.
+
 **On Kanit's provenance** — worth stating because it is easy to assume
 otherwise: Kanit is *not* a bespoke Action typeface. It is an open-source
 family by Cadson Demak (a Thai foundry), published on Google Fonts under the

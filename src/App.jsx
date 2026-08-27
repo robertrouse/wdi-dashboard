@@ -219,9 +219,6 @@ export default function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <Header
-        bundle={bundle}
-        countryCount={visibleCodes.length}
-        indicatorCount={activeInds.length}
         actions={
           <button
             onClick={() => setFiltersOpen(true)}
