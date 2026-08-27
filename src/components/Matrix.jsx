@@ -173,32 +173,11 @@ export default function Matrix({
                   return (
                     <td key={ind.id} style={{ ...td, textAlign: "center", padding: "9px 3px" }}>
                       <Tooltip
-                        width={420}
+                        width={300}
                         content={
-                          <IndicatorCard
-                            ind={ind}
-                            extra={
-                              <div style={{
-                                background: "var(--surface-alt)", borderRadius: 8,
-                                padding: "10px 12px", margin: "4px 0 2px",
-                              }}>
-                                <div style={{ fontSize: "15px", color: "var(--warm-grey)" }}>{row.label}</div>
-                                <div style={{ fontSize: "21px", fontWeight: 500 }} className="tabular">
-                                  {formatValue(r2?.v, ind)}
-                                  <span style={{ fontSize: "14px", fontWeight: 300, color: "var(--warm-grey)", marginLeft: 8 }}>
-                                    {r2 ? r2.y : "no recent reading"}
-                                  </span>
-                                </div>
-                                <div style={{ fontSize: "14.5px", marginTop: 4, color: PERF_COLOR[s2.perf] }}>
-                                  {perfWord(s2.perf, ind, scales[ind.id])}
-                                  {scales[ind.id]?.benchmark != null && s2.perf !== PERF.NONE && (
-                                    <span style={{ color: "var(--warm-grey)" }}>
-                                      {" · "}{scales[ind.id].benchmarkKind} {formatValue(scales[ind.id].benchmark, ind)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            }
+                          <RowMetricCard
+                            ind={ind} row={row} rec={r2} sc={s2}
+                            scale={scales[ind.id]} bundle={bundle}
                           />
                         }
                       >
@@ -221,3 +200,57 @@ const th = {
   letterSpacing: "0.03em", color: "var(--ink)", verticalAlign: "bottom",
 };
 const td = { padding: "11px 8px", verticalAlign: "middle" };
+
+/* The hover card on a data-row glyph.
+   Deliberately NOT the indicator card. Hovering a COLUMN HEADER asks "what is
+   this metric, and how should I read it?" — definition and caveats. Hovering a
+   glyph in a ROW asks "how is this one doing?", and the honest answer is that
+   row's number and the shape of its decade, not a paragraph the reader has
+   already read fifteen times on the way down the table. */
+function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
+  const dl = delta(rec, ind);
+  const t = rec?.t ?? [];
+  return (
+    <div>
+      <div className="eyebrow" style={{ marginBottom: 2 }}>{ind.label}</div>
+      <div style={{ fontSize: "17px", fontWeight: 600, lineHeight: 1.2 }}>{row.label}</div>
+
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 7 }}>
+        <span className="tabular" style={{ fontSize: "23px", fontWeight: 500,
+              color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
+          {formatValue(rec?.v, ind)}
+        </span>
+        <span style={{ fontSize: "14px", color: "var(--warm-grey)" }}>
+          {rec ? rec.y : "no recent reading"}
+        </span>
+      </div>
+
+      <div style={{ fontSize: "14.5px", marginTop: 3, color: PERF_COLOR[sc.perf] }}>
+        {perfWord(sc.perf, ind, scale)}
+        {scale?.benchmark != null && sc.perf !== PERF.NONE && (
+          <span style={{ color: "var(--warm-grey)" }}>
+            {" · "}{scale.benchmarkKind} {formatValue(scale.benchmark, ind)}
+          </span>
+        )}
+      </div>
+
+      {t.length > 1 && (
+        <div style={{ marginTop: 11, paddingTop: 11, borderTop: "1px solid var(--rule)" }}>
+          <Sparkline
+            points={t}
+            reference={referenceFor(bundle, row, ind)}
+            ind={ind}
+            width={264} height={54} showDots
+            color={PERF_COLOR[sc.perf]}
+            dotColor={dl.favorable === false ? "var(--red-cerise)"
+                    : dl.favorable === true ? "var(--blue-maven)" : "var(--warm-grey)"}
+          />
+          <div style={{ fontSize: "13px", color: "var(--warm-grey)", marginTop: 3 }}>
+            {t[0][0]}–{t[t.length - 1][0]}
+            {ind.aggShort && row.kind !== "region" ? ` · dotted line: ${ind.aggShort} for the region` : ""}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

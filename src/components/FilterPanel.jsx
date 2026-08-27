@@ -1,13 +1,19 @@
 import { useMemo, useState } from "react";
 
 /* --------------------------------------------------------------------------
-   Control rail.
+   Control rail, as a drawer.
 
-   Mirrors the right-hand filter column of the original dashboard: view level,
-   group membership, metric selection, and a "show only the ones in trouble"
-   escape hatch. One structure serving many questions is the whole argument of
-   the chapter — every control here changes what the same components render
-   rather than switching to a different sheet.
+   Carries the same controls as the right-hand filter column of the original
+   dashboard — view level, group membership, metric selection, and a "show only
+   the ones in trouble" escape hatch. One structure serving many questions is
+   the whole argument of the chapter: every control here changes what the same
+   components render rather than switching to a different sheet.
+
+   It sits behind a button rather than permanently on screen because it cost
+   318px of width that the glyph matrix wanted — with it open the rightmost
+   metric columns fell off into the horizontal scroller. The button carries a
+   count of anything set away from its default, so a collapsed panel can never
+   hide the fact that the view is filtered.
    -------------------------------------------------------------------------- */
 
 const S = {
@@ -54,6 +60,7 @@ export default function FilterPanel({
   bundle, view, setView, regions, activeRegions, toggleRegion,
   indicators, activeIndicatorIds, toggleIndicator, focusId, setFocus,
   countries, selected, setSelected, onlyWeak, setOnlyWeak, presets, applyPreset, activePreset,
+  onClose,
 }) {
   const [q, setQ] = useState("");
   const matches = useMemo(() => {
@@ -64,12 +71,37 @@ export default function FilterPanel({
 
   return (
     <aside
+      aria-label="Filters"
       style={{
-        width: 318, flexShrink: 0, background: "var(--white)",
-        borderLeft: "1px solid var(--rule)", padding: "26px 24px 60px",
-        overflowY: "auto", height: "100%",
+        position: "fixed", top: 0, right: 0, bottom: 0, width: 340, maxWidth: "92vw",
+        zIndex: 80, background: "var(--white)", borderLeft: "1px solid var(--rule)",
+        boxShadow: "-14px 0 44px rgba(10,16,68,.18)",
+        padding: "0 24px 60px", overflowY: "auto",
       }}
+      onClick={(e) => e.stopPropagation()}
     >
+      {/* Sticky so the way out is always in reach on a long filter list. */}
+      <div
+        style={{
+          position: "sticky", top: 0, zIndex: 1, background: "var(--white)",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 12, padding: "18px 0 12px", marginBottom: 4,
+          borderBottom: "1px solid var(--rule)",
+        }}
+      >
+        <span style={{ fontSize: "19px", fontWeight: 600 }}>Filters</span>
+        <button
+          onClick={onClose}
+          aria-label="Close filters"
+          style={{
+            background: "transparent", border: "1.5px solid var(--rule-strong)",
+            borderRadius: 8, padding: "6px 14px", fontSize: "15px",
+            color: "var(--ink)", cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          Done
+        </button>
+      </div>
       <div style={S.section}>
         <span style={S.h}>View level</span>
         <Radio name="view" value="country" checked={view === "country"} onChange={setView}

@@ -86,7 +86,21 @@ Source material lives in the parent folder `../`:
    have always been 13-13.5px. Either raise them or restate what the floor
    covers — do not quietly cite this line as if it were true.)
 
-9. **A sparkline's dotted reference and its colours are ONE decision.** The
+9. **Chrome earns its pixels; the matrix gets the rest.** The header is one
+    58px bar, the filters live in a drawer behind a button, and row detail is a
+    modal. Anything that does not carry data stays out of the vertical budget —
+    the full-width matrix fits all fifteen glyph columns without the horizontal
+    scroller, which is the whole point of the view. If you add chrome, take the
+    space from somewhere else.
+
+10. **Definitions and caveats belong on the column header, nowhere else.**
+    Hovering a header asks "what is this metric, and how do I read it?" — that
+    gets the full `IndicatorCard`. Hovering a glyph in a data row asks "how is
+    *this one* doing?", so it gets that row's value, verdict and sparkline and
+    no standing text. The detail modal carries no caveat text either: fifteen
+    repeated paragraphs pushed the numbers off screen. One place, one question.
+
+11. **A sparkline's dotted reference and its colours are ONE decision.** The
    line a reader sees must be the line the colours are measured from. The rules
    live in `referenceFor()` in `src/lib/kpi.js`, and each exclusion was measured
    rather than guessed:

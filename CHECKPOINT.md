@@ -93,6 +93,28 @@ added `aggKind` to the glossary but the app kept reading the old copy, so GDP
 briefly kept a reference line it should never have had. A glossary edit does
 nothing until the data is rebuilt. Documented in PLAN.md and README.
 
+## UI: chrome shrunk, filters and detail moved — 2026-08-27
+
+- **Header 150px -> 58px.** Standfirst, eyebrow and the stacked stat blocks are
+  gone; mark, title, three inline stats and the Filters button on one line.
+- **Filters behind a button** (drawer + backdrop, Escape / backdrop / Done all
+  dismiss). Recovering those 318px is what lets all fifteen glyph columns fit
+  without the horizontal scroller.
+- **Row detail is a modal**, not a panel below the matrix. Also compacted: the
+  per-row definition and caveat text is gone, rows are 9px instead of 16px, and
+  the dialog is 860px wide. Eight metrics visible at once, against two or three.
+- **Tooltips split by question.** Column header -> full indicator card with
+  definition and caveat. Data-row glyph -> that row's value, verdict and a
+  sparkline with its benchmark, no standing text.
+- Verified: all 15 metrics x both view levels render; drawer and modal dismiss
+  via Escape, backdrop and button; clicks inside the drawer do not dismiss it;
+  no app console errors.
+
+**Known cosmetic issue, pre-existing:** `clamp()` truncates the three GDP
+definitions at their shared opening, so on the column-header hovers GDP, GDP per
+capita and GDP growth all read identically until the caveat. Worth either
+raising the clamp or writing distinct openings.
+
 ## Immediate next actions
 1. Check `gh run list --event schedule` after **1 Sept 2026** — the monthly
    trigger has still never fired, and the repo is too new for it to have.

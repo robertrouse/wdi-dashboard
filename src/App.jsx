@@ -41,6 +41,7 @@ export default function App() {
   const [focusId, setFocusId] = useState("gdppc");
   const [onlyWeak, setOnlyWeak] = useState(false);
   const [detailRowId, setDetailRowId] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     // no-cache forces a revalidation against the server's ETag rather than
@@ -53,6 +54,18 @@ export default function App() {
       .then(setBundle)
       .catch((e) => setErr(e.message));
   }, []);
+
+  // Escape backs out one layer at a time: the detail modal sits above the
+  // filter drawer, so it is the one that closes first.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (detailRowId) setDetailRowId(null);
+      else if (filtersOpen) setFiltersOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [detailRowId, filtersOpen]);
 
   const indicators = bundle?.indicators ?? [];
   const activeInds = useMemo(
@@ -196,12 +209,48 @@ export default function App() {
         : `Glyphs compare each row to the median of the ${rowCount} countries on screen — ${formatValue(scale.benchmark, focus)} for ${focus.label}. Change the selection and the benchmark moves with it.`
       : "No benchmark available for the current selection.";
 
-  return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
-        <Header bundle={bundle} countryCount={visibleCodes.length} indicatorCount={activeInds.length} />
+  // How many controls are away from their default — shown on the button so a
+  // collapsed panel cannot hide the fact that the view is filtered.
+  const activeFilterCount =
+    (activeRegions && activeRegions.length < bundle.regions.length ? 1 : 0) +
+    (activeIndicatorIds && activeIndicatorIds.length < indicators.length ? 1 : 0) +
+    (onlyWeak ? 1 : 0);
 
-        <div style={{ padding: "26px 34px 70px" }}>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+      <Header
+        bundle={bundle}
+        countryCount={visibleCodes.length}
+        indicatorCount={activeInds.length}
+        actions={
+          <button
+            onClick={() => setFiltersOpen(true)}
+            aria-expanded={filtersOpen}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "transparent", color: "var(--blue-ice)",
+              border: "1.5px solid var(--blue-ice)", borderRadius: 8,
+              padding: "6px 14px", fontSize: "15px", fontWeight: 500,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M1 3h14M4 8h8M6.5 13h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span style={{
+                background: "var(--blue-ice)", color: "var(--blue-raven)",
+                borderRadius: 999, fontSize: "12px", fontWeight: 600,
+                minWidth: 18, textAlign: "center", padding: "1px 5px",
+              }}>{activeFilterCount}</span>
+            )}
+          </button>
+        }
+      />
+
+      <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
+        <div style={{ padding: "18px 24px 70px" }}>
           <Legend benchmarkNote={benchmarkNote} />
 
           {rows.length === 0 ? (
@@ -218,43 +267,51 @@ export default function App() {
             />
           )}
 
-          {detailRow && (
-            <DetailPanel
-              row={detailRow}
-              indicators={indicators}
-              scales={scales}
-              bundle={bundle}
-              onClose={() => setDetailRowId(null)}
-            />
-          )}
-
           <Method bundle={bundle} />
         </div>
       </main>
 
-      <FilterPanel
-        bundle={bundle}
-        view={view} setView={(v) => { setView(v); setDetailRowId(null); }}
-        regions={bundle.regions}
-        activeRegions={activeRegions ?? bundle.regions.map((_, i) => i)}
-        toggleRegion={(i) => {
-          const cur = activeRegions ?? bundle.regions.map((_, j) => j);
-          setActiveRegions(cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort());
-        }}
-        indicators={indicators}
-        activeIndicatorIds={activeIndicatorIds ?? indicators.map((i) => i.id)}
-        toggleIndicator={(id) => {
-          const cur = activeIndicatorIds ?? indicators.map((i) => i.id);
-          const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
-          setActiveIndicatorIds(next.length ? next : cur);
-        }}
-        focusId={focus.id} setFocus={setFocusId}
-        countries={bundle.countries}
-        selected={selected}
-        setSelected={(s) => { setSelected(s); setActivePreset(null); }}
-        onlyWeak={onlyWeak} setOnlyWeak={setOnlyWeak}
-        presets={PRESETS} applyPreset={applyPreset} activePreset={activePreset}
-      />
+      {detailRow && (
+        <DetailPanel
+          row={detailRow}
+          indicators={indicators}
+          scales={scales}
+          bundle={bundle}
+          onClose={() => setDetailRowId(null)}
+        />
+      )}
+
+      {filtersOpen && (
+        <div
+          onClick={() => setFiltersOpen(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 75, background: "rgba(10,16,68,.28)" }}
+        >
+          <FilterPanel
+            bundle={bundle}
+            onClose={() => setFiltersOpen(false)}
+            view={view} setView={(v) => { setView(v); setDetailRowId(null); }}
+            regions={bundle.regions}
+            activeRegions={activeRegions ?? bundle.regions.map((_, i) => i)}
+            toggleRegion={(i) => {
+              const cur = activeRegions ?? bundle.regions.map((_, j) => j);
+              setActiveRegions(cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort());
+            }}
+            indicators={indicators}
+            activeIndicatorIds={activeIndicatorIds ?? indicators.map((i) => i.id)}
+            toggleIndicator={(id) => {
+              const cur = activeIndicatorIds ?? indicators.map((i) => i.id);
+              const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+              setActiveIndicatorIds(next.length ? next : cur);
+            }}
+            focusId={focus.id} setFocus={setFocusId}
+            countries={bundle.countries}
+            selected={selected}
+            setSelected={(s) => { setSelected(s); setActivePreset(null); }}
+            onlyWeak={onlyWeak} setOnlyWeak={setOnlyWeak}
+            presets={PRESETS} applyPreset={applyPreset} activePreset={activePreset}
+          />
+        </div>
+      )}
     </div>
   );
 }
