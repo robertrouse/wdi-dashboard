@@ -100,7 +100,25 @@ Source material lives in the parent folder `../`:
     no standing text. The detail modal carries no caveat text either: fifteen
     repeated paragraphs pushed the numbers off screen. One place, one question.
 
-11. **A sparkline's dotted reference and its colours are ONE decision.** The
+11. **Aggregate rows are shown, but never set the benchmark.** Each section
+    opens with its regional aggregate (region view opens with the World). They
+    are built in the `rows` memo, *after* `scales` is derived from `dataRows` —
+    that ordering is load-bearing. Letting a region's total into the median of
+    its own members would move the very line the row exists to illustrate. They
+    are scored against that scale, they just do not help set it, and the
+    benchmark note counts peers only.
+
+12. **Change is percent, except for metrics already in percent.** Those report
+    percentage points — "unemployment up 10%" for 4.0% to 4.4% is the classic
+    misread. Everything else is percent change so the column can be read down
+    the page. Two exceptions, both in `DeltaArrow`: a zero or sign-crossing
+    baseline (net migration swings through zero, and a percent change off a
+    negative is an artefact, not a fact) falls back to native units; and a delta
+    that rounds to zero at the displayed precision prints "no change" rather
+    than "−0.0%". Check that on the rounded NUMBER — a regex over the formatted
+    string missed it once the unit moved to the end.
+
+13. **A sparkline's dotted reference and its colours are ONE decision.** The
    line a reader sees must be the line the colours are measured from. The rules
    live in `referenceFor()` in `src/lib/kpi.js`, and each exclusion was measured
    rather than guessed:

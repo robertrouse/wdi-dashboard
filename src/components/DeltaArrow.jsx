@@ -7,12 +7,20 @@
    expectancy is a down arrow in cerise. Readers who ignore colour still get the
    direction; readers who ignore the arrow still get the judgement.
 
-   Rate-type indicators (anything already in %) report change in percentage
-   points, since a percent change of a percent is a well-known way to mislead.
+   The magnitude is a PERCENTAGE CHANGE for every metric except those already
+   measured in percent, which report percentage POINTS instead — a percent
+   change of a percent is a well-known way to mislead ("unemployment up 10%"
+   when it moved from 4.0% to 4.4%).
+
+   One rule for everything else is the point: a Change column that mixes
+   "+$520", "+0.3 yrs" and "−1.2 per 1,000" cannot be read down, and this
+   dashboard exists to argue that normalising the comparison is what makes
+   incompatible units legible. Percent change is that normalisation.
    -------------------------------------------------------------------------- */
 
 export default function DeltaArrow({ d, ind, showLabel = true, size = 15 }) {
-  if (!d || d.dir === 0 || d.abs == null) {
+  // No previous reading at all is a different statement from "it did not move".
+  if (!d || d.abs == null) {
     return <span style={{ color: "var(--neutral-grey)", fontSize: "var(--t-small)" }}>—</span>;
   }
 
@@ -21,26 +29,40 @@ export default function DeltaArrow({ d, ind, showLabel = true, size = 15 }) {
     d.favorable === false ? "var(--red-cerise)" :
                             "var(--warm-grey)";
 
-  // How a change is best expressed depends on the metric's own units, so the
-  // rule is driven by the glossary rather than hard-coded per indicator:
-  //   rates (%)          -> percentage points, never "percent of a percent"
-  //   huge counts ($, #) -> percent change, because the raw delta is unreadable
-  //   everything else    -> the delta in its own units, with its own prefix
+  // Driven by the glossary, never hard-coded per indicator.
   const sign = d.abs >= 0 ? "+" : "\u2212";
   const mag = Math.abs(d.abs);
-  let text;
-  if (ind.suffix === "%") {
-    text = `${sign}${mag.toFixed(mag >= 10 ? 1 : ind.decimals)} pts`;
-  } else if (ind.scale === "compact" && d.pct != null) {
-    text = `${d.pct >= 0 ? "+" : "\u2212"}${Math.abs(d.pct).toFixed(Math.abs(d.pct) >= 10 ? 0 : 1)}%`;
-  } else {
+  const nativeDelta = () => {
     const body = mag >= 1000 ? Math.round(mag).toLocaleString("en-US") : mag.toFixed(ind.decimals);
-    text = `${sign}${ind.prefix ?? ""}${body}${ind.suffix ? " " + ind.suffix : ""}`;
+    return `${sign}${ind.prefix ?? ""}${body}${ind.suffix ? " " + ind.suffix : ""}`;
+  };
+
+  let text, shown;
+  if (ind.suffix === "%") {
+    // Already a percentage: report points.
+    const digits = mag >= 10 ? 1 : ind.decimals;
+    shown = Number(mag.toFixed(digits));
+    text = `${sign}${mag.toFixed(digits)} pts`;
+  } else if (d.pct == null || d.p === 0 || (d.p != null && d.v != null && Math.sign(d.p) !== Math.sign(d.v))) {
+    // Percent change needs a stable, same-signed baseline. Net migration
+    // crosses zero, and "+150%" for a swing from −100k to +50k is not a fact
+    // about migration — it is an artefact of dividing by a negative. Those
+    // rare rows fall back to the change in native units.
+    const digits = mag >= 1000 ? 0 : ind.decimals;
+    shown = Number(mag.toFixed(digits));
+    text = nativeDelta();
+  } else {
+    const a = Math.abs(d.pct);
+    const digits = a >= 10 ? 0 : 1;
+    shown = Number(a.toFixed(digits));
+    text = `${d.pct >= 0 ? "+" : "\u2212"}${a.toFixed(digits)}%`;
   }
 
   // A delta that rounds away to zero at the displayed precision is not a change;
-  // printing "+0.0" with a coloured arrow claims movement that is not there.
-  if (/^[+\u2212][^\d]*0(\.0+)?( |$)/.test(text)) {
+  // printing "−0.0%" beside a coloured arrow claims movement that is not there.
+  // Checked on the rounded number rather than by pattern-matching the string,
+  // which is how "−0.0%" slipped through once the unit moved to the end.
+  if (shown === 0) {
     return (
       <span style={{ color: "var(--warm-grey)", fontSize: "var(--t-small)" }}>
         no change

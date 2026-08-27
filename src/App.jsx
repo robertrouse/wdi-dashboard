@@ -4,7 +4,7 @@ import Legend from "./components/Legend.jsx";
 import Matrix from "./components/Matrix.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
-import { buildScalesFromRows, regionRecord, score, PERF } from "./lib/kpi.js";
+import { buildScalesFromRows, regionRecord, worldRecord, score, PERF } from "./lib/kpi.js";
 import { formatValue } from "./lib/format.js";
 
 /* Default country set: three to five per World Bank region, chosen for regional
@@ -125,7 +125,6 @@ export default function App() {
       kind: "country",
       id: c,
       label: byCode[c].n,
-      sub: byCode[c].i,
       region: byCode[c].r,
       get: (id) => bundle.series[c]?.[id] ?? null,
     }));
@@ -136,8 +135,40 @@ export default function App() {
     [dataRows, indicators]
   );
 
+  /* Aggregate rows are built here rather than in `dataRows`, and that placement
+     is load-bearing: `scales` is derived from dataRows, so an aggregate row can
+     be shown WITHOUT joining the peer set it is meant to be compared against.
+     Letting a region's total into the country median would move the very
+     benchmark the row exists to illustrate. It is scored against that scale,
+     it just does not help set it. */
   const rows = useMemo(() => {
     if (!focus) return [];
+
+    const findInd = (id) => indicators.find((i) => i.id === id);
+    const aggregateRow = (ri) => {
+      const cache = {};
+      const code = bundle.regionCodes?.[ri];
+      return {
+        kind: "aggregate",
+        id: `agg-${ri}`,
+        label: bundle.regions[ri].trim(),
+        sub: code
+          ? `Regional aggregate ${code} · every economy in the region`
+          : "No official aggregate published for this region",
+        region: ri,
+        get: (id) => (cache[id] ??= regionRecord(bundle, ri, findInd(id))),
+      };
+    };
+    const worldRow = () => {
+      const cache = {};
+      return {
+        kind: "world",
+        id: "agg-world",
+        label: "World",
+        sub: "World aggregate WLD · every economy the Bank counts",
+        get: (id) => (cache[id] ??= worldRecord(bundle, findInd(id))),
+      };
+    };
 
     const keep = (r) => {
       if (!onlyWeak) return true;
@@ -145,7 +176,7 @@ export default function App() {
       return s.perf === PERF.WEAK || s.perf === PERF.NONE;
     };
 
-    if (view === "region") return dataRows.filter(keep);
+    if (view === "region") return [worldRow(), ...dataRows.filter(keep)];
 
     const byRegion = new Map();
     for (const r of dataRows.filter(keep)) {
@@ -172,7 +203,10 @@ export default function App() {
         const bv = b.get(focus.id)?.v ?? -Infinity;
         return focus.direction === "down" ? av - bv : bv - av;
       });
+      // The aggregate leads the section: it is the line the members below are
+      // being read against, so it wants to be seen before them, not found after.
       out.push({ kind: "groupHeader", label: bundle.regions[ri], count: kids.length });
+      out.push(aggregateRow(ri));
       out.push(...kids);
     }
     return out;
@@ -197,7 +231,9 @@ export default function App() {
   if (!bundle || !focus) return <Loading />;
 
   const scale = scales[focus.id];
-  const rowCount = rows.filter((r) => r.kind !== "groupHeader").length;
+  // Peers only: the aggregate rows are shown but never set the benchmark, so
+  // counting them here would overstate what the median was taken over.
+  const rowCount = rows.filter((r) => r.kind === "country" || r.kind === "region").length;
   const benchmarkNote =
     focus.direction === "band"
       ? `${focus.label} is scored against an explicit target of ${focus.target}% — the only indicator here that has one.`
@@ -338,6 +374,20 @@ function Method({ bundle }) {
         colour. Those keep a plain self-scaled trace rather than a benchmark that would
         mean nothing. Arrows point the way the number moved and are coloured by whether that
         movement was good — falling under-5 mortality and rising life expectancy are both blue.
+      </p>
+      <p>
+        <strong>Change</strong> is a percentage change for every metric except those already
+        measured in percent, which report percentage <em>points</em> instead. A percent change
+        of a percent is a well-known way to mislead: unemployment moving from 4.0% to 4.4% is
+        not "up 10%". One rule for everything else is deliberate — a column mixing "+$520",
+        "+0.3 yrs" and "−1.2 per 1,000" cannot be read down the page.
+      </p>
+      <p>
+        Every section opens with its <strong>regional aggregate</strong> — the Bank's published
+        subtotal for that region, and in region view the World. It is the line the rows beneath
+        it are being read against. It is shown but deliberately excluded from the benchmark
+        maths: letting a region's total into the median of its own members would move the very
+        line the row exists to illustrate.
       </p>
       <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", borderTop: "1px solid var(--rule)", paddingTop: 14 }}>
         Source: {bundle.source}. Bundle generated {bundle.generated}. Values are each country's

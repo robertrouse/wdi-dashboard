@@ -115,6 +115,21 @@ definitions at their shared opening, so on the column-header hovers GDP, GDP per
 capita and GDP growth all read identically until the caveat. Worth either
 raising the clamp or writing distinct openings.
 
+## Aggregate rows, percent change, no income subhead — 2026-08-27
+
+- **Every section opens with its regional aggregate**; region view opens with
+  the World. Built in the `rows` memo *after* `scales` is derived from
+  `dataRows`, so they are shown and scored but never help set the benchmark —
+  the note still counts 26 countries / 7 regions.
+- **Change is percent change**, except metrics already in percent, which report
+  points. Fallback to native units when the baseline is zero or sign-crossing
+  (net migration swings through zero).
+- **Income-level subhead removed** from country rows.
+
+Fixed on the way: the "rounds to zero" guard was a regex over the formatted
+string and missed `−0.0%` once the unit moved to the end. It now tests the
+rounded number. Swept all 15 metrics — no zero leaks.
+
 ## Immediate next actions
 1. Check `gh run list --event schedule` after **1 Sept 2026** — the monthly
    trigger has still never fired, and the repo is too new for it to have.

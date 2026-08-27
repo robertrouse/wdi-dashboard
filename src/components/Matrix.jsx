@@ -112,19 +112,26 @@ export default function Matrix({
             const dl = delta(rec, focus);
             const isSel = selectedRow === row.id;
             const stale = rec && rec.y < bundle.yearSpan[1] - 1;
+            // The published subtotal heading a section — set apart from the
+            // members below it, because it is a different kind of number and
+            // must not read as one more country in the list.
+            const isAgg = row.kind === "aggregate" || row.kind === "world";
 
             return (
               <tr
                 key={row.id}
                 onClick={() => onSelectRow?.(row)}
                 style={{
-                  borderBottom: "1px solid var(--rule)",
-                  background: isSel ? "var(--surface-alt)" : i % 2 ? "transparent" : "rgba(255,255,255,.55)",
+                  borderBottom: isAgg ? "1.5px solid var(--cool-grey)" : "1px solid var(--rule)",
+                  background: isSel ? "var(--surface-alt)"
+                            : isAgg ? "rgba(216,233,244,.42)"
+                            : i % 2 ? "transparent" : "rgba(255,255,255,.55)",
                   cursor: onSelectRow ? "pointer" : "default",
                 }}
               >
                 <td style={{ ...td, paddingLeft: 4 }}>
-                  <span style={{ fontSize: "17.5px", fontWeight: isSel ? 600 : 400 }}>{row.label}</span>
+                  <span style={{ fontSize: "17.5px", fontWeight: isSel || isAgg ? 600 : 400,
+                                 color: isAgg ? "var(--blue-raven)" : undefined }}>{row.label}</span>
                   {row.sub && (
                     <span style={{ display: "block", fontSize: "13.5px", color: "var(--warm-grey)", lineHeight: 1.2 }}>
                       {row.sub}

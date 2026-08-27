@@ -143,7 +143,7 @@ export function score(rec, ind, scale) {
  */
 export function delta(rec, ind) {
   if (!rec || rec.v == null || rec.p == null) {
-    return { dir: 0, favorable: null, abs: null, pct: null, from: rec?.py ?? null };
+    return { dir: 0, favorable: null, abs: null, pct: null, v: rec?.v ?? null, p: rec?.p ?? null, from: rec?.py ?? null };
   }
   const abs = rec.v - rec.p;
   const pct = rec.p === 0 ? null : (abs / Math.abs(rec.p)) * 100;
@@ -156,7 +156,9 @@ export function delta(rec, ind) {
     // Moving toward the target is favorable, whichever side you start on.
     favorable = Math.abs(rec.v - ind.target) < Math.abs(rec.p - ind.target);
   }
-  return { dir, favorable, abs, pct, from: rec.py };
+  // v and p ride along so a formatter can tell whether the baseline is a sane
+  // denominator for a percent change (see DeltaArrow).
+  return { dir, favorable, abs, pct, v: rec.v, p: rec.p, from: rec.py };
 }
 
 /**
@@ -240,7 +242,12 @@ export function referenceFor(bundle, row, ind) {
   // drawn exactly where it can be compared against, and nowhere else.
   if (ind.direction !== "up" && ind.direction !== "down") return null;
 
-  if (row.kind === "region") {
+  // Nothing sits above the World, so its own row has no reference.
+  if (row.kind === "world") return null;
+
+  // Region-level rows — the seven rows of region view, and the aggregate row
+  // that closes each section of country view — are read against the World.
+  if (row.kind === "region" || row.kind === "aggregate") {
     const rec = worldRecord(bundle, ind);
     return rec ? { kind: "series", points: rec.t, label: "World" } : null;
   }
