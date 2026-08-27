@@ -39,14 +39,31 @@ jobs:
         run: |
           node -e '
             const b = require("./public/data/wdi.json");
+            const expected = require("./data/indicators.json").length;
             const errs = [];
             if (b.countries.length < 150) errs.push(`only ${b.countries.length} countries`);
-            if (b.indicators.length !== 15) errs.push(`${b.indicators.length} indicators, expected 15`);
+            // Derived from the glossary, not hardcoded: adding an indicator is
+            // meant to be a data-only change, and a literal here would break
+            // the monthly refresh the moment someone adds one.
+            if (b.indicators.length !== expected) errs.push(`${b.indicators.length} indicators, expected ${expected}`);
             const withGdp = Object.values(b.series).filter(s => s.gdp?.v > 0).length;
             if (withGdp < 150) errs.push(`only ${withGdp} countries have GDP`);
             if (b.yearSpan[1] < new Date().getFullYear() - 3) errs.push(`stale: latest year ${b.yearSpan[1]}`);
+
+            // The official regional aggregates are the benchmark every region
+            // row is scored against. Losing them does not blank one cell, it
+            // empties the whole region view — so it fails the job.
+            const regionCount = b.regions.length;
+            const mapped = (b.regionCodes ?? []).filter(Boolean);
+            if (mapped.length !== regionCount) {
+              errs.push(`${mapped.length}/${regionCount} regions have an official aggregate mapped`);
+            }
+            for (const code of mapped) {
+              const got = Object.keys(b.regionSeries?.[code] ?? {}).length;
+              if (got < expected) errs.push(`aggregate ${code} carries ${got}/${expected} indicators`);
+            }
             if (errs.length) { console.error("REFUSING TO COMMIT:", errs.join("; ")); process.exit(1); }
-            console.log(`ok — ${b.countries.length} countries, data through ${b.yearSpan[1]}`);
+            console.log(`ok — ${b.countries.length} countries, ${mapped.length} regional aggregates, data through ${b.yearSpan[1]}`);
           '
 
       - name: Commit if changed

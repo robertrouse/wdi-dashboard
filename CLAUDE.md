@@ -36,16 +36,46 @@ Source material lives in the parent folder `../`:
 2. **Favorable direction comes from metadata**, never from intuition or a
    hard-coded per-metric branch. `direction` is `up` | `down` | `band` | `none`.
 3. **Scales are built from the rows on screen** (`buildScalesFromRows`), not
-   from the full dataset. In region view this means region medians are scored
-   against other region medians. Scoring them against the country distribution
-   flattens the view and is wrong.
+   from the full dataset. In region view this means the seven regional
+   aggregates are scored against each other. Scoring them against the country
+   distribution flattens the view and is wrong.
 4. **"No data" is a distinct state** (`PERF.NONE`, dashed circle, `NA`). Never
    render a missing value as zero, blank, or bottom-ranked.
 5. **Sparklines are scaled to their own range.** They encode shape and
    direction only. If you ever put them on a shared axis, the tooltip claim
    that magnitude is not comparable becomes a lie.
-6. **Region rows are medians, never sums or unweighted means.** Summing life
-   expectancy is meaningless; averaging percentages without weights is worse.
+6. **Region rows are the World Bank's own published subtotals** — never a
+   roll-up this project computes. `data/regions.json` maps each region to its
+   official aggregate code (the seven "all income levels" ones: EAS, ECS, LCN,
+   MEA, NAC, SAS, SSF — *not* the "excluding high income" variants, which cover
+   different economies). Both build scripts carry those series into
+   `regionSeries`; `regionRecord()` reads them.
+
+   This replaced a median of member countries on 2026-08-26. The old rule was
+   trying to avoid a real error — summing life expectancy is meaningless and
+   averaging percentages unweighted is worse — but it overcorrected into a
+   different one, because *there is no single roll-up rule that is right for
+   fifteen metrics*. Population wants a sum, life expectancy a
+   population-weighted average, inflation a median, homicides whatever UNODC
+   does. A median of member countries weights Tuvalu and China equally, so
+   "East Asia & Pacific GDP" read as **$16.7 billion** — the middle-ranked
+   economy — against a true regional figure of **$33.7 trillion**. Off by
+   ×2,019, and it looked perfectly reasonable on screen.
+
+   Two rules follow, and both matter:
+   - **The aggregate is fixed.** It covers every economy the Bank counts in
+     that region, so it does not move when the reader filters countries.
+     Filtering decides which region rows appear, never what they say. Any copy
+     implying otherwise is a bug — that is why the row subtitle says "every
+     economy in the region" rather than a selection count.
+   - **No fallback, ever.** A region with no published subtotal for an
+     indicator reads `NA` (invariant 4). Quietly substituting a
+     differently-computed number would put two incompatible statistics in one
+     column, which is the exact error this dashboard exists to teach against.
+
+   `ind.aggShort` carries a short, faithful restatement of the Bank's method
+   and the matrix header shows it. Do not remove it: that the method *changes
+   per metric* is part of the argument, not a footnote.
 7. **Adding an indicator must stay a data-only change** — one row in
    `data/indicators.json` plus a data rebuild. If a change forces you to touch
    a component to add a metric, the abstraction has leaked; fix that instead.
@@ -83,10 +113,12 @@ neutral/none = greys. Expanded-palette colours accentuate, never dominate.
 ```
 data/indicators.json        the glossary — the single source of truth for
                             units, direction, targets, definitions, caveats
+data/regions.json           region label -> official WB aggregate code, with
+                            accepted-name aliases; read by BOTH build scripts
 scripts/build_data.py       seed bundle from the local bulk CSV (offline path)
 scripts/refresh_data.mjs    recurring bundle from the World Bank REST API
 scripts/diff_bundle.mjs     human-readable summary of what a refresh changed
-src/lib/kpi.js              scales, scoring, deltas, region roll-ups, trend
+src/lib/kpi.js              scales, scoring, deltas, region benchmarks, trend
 src/lib/format.js           unit-aware formatting
 src/components/*.jsx        presentation only; no metric-specific logic
 ```
@@ -97,12 +129,29 @@ in `PLAN.md`.
 
 Bundle shape:
 ```
-{ generated, source, yearSpan:[from,to], regions:[…], indicators:[…],
+{ generated, source, yearSpan:[from,to],
+  regions:[…], regionCodes:[…],          // parallel arrays; code may be null
+  indicators:[…],
   countries:[{c,n,r,i,iso2}],
-  series:{ CCC: { indicatorId: { y, v, p, py, t:[[year,value],…] } } } }
+  series:{      CCC: { indicatorId: { y, v, p, py, t:[[year,value],…] } } },
+  regionSeries:{ EAS: { indicatorId: { y, v, p, py, t:[[year,value],…] } } } }
 ```
 `y`/`v` latest year and value · `p`/`py` previous value and its year ·
 `t` trend window.
+
+`regionSeries` records are the same shape as country records — deliberately, so
+the same scoring, delta and sparkline code runs over both. They hold the World
+Bank's official regional subtotals (invariant 6). `regionCodes[i]` is the
+aggregate code for `regions[i]`; a `null` there means that region has no
+published aggregate and its rows read `NA`.
+
+**Region labels differ between the two data paths and that is expected.** The
+API returns the post-reclassification names, some with trailing whitespace
+(`"Sub-Saharan Africa "`); the January 2026 bulk CSV still labels *countries*
+`"Middle East & North Africa"` even though its *aggregate* row already uses the
+new name. `data/regions.json` lists both spellings and matching collapses
+whitespace, so each path maps to the same aggregate code regardless. Compare
+bundles on `regionCodes`, never on `regions`.
 
 ---
 
@@ -199,10 +248,19 @@ Repo: <https://github.com/robertrouse/wdi-dashboard>
    clips at the container edge. The scroll affordance is not obvious — consider
    a fade or shadow on the right edge of the scroll container.
 
-4. **`scripts/build_data.py` hardcodes nothing about indicator count, but
-   `refresh-data.yml`'s sanity gate asserts exactly 15.** If you add or remove
-   an indicator, update that assertion or the monthly refresh will start
-   failing closed.
+4. **CLOSED (2026-08-26).** The sanity gate no longer hardcodes 15 — it derives
+   the expected count from `data/indicators.json`, so adding an indicator stays
+   a data-only change (invariant 7). The gate also now asserts that all seven
+   regions have an official aggregate carrying every indicator.
+
+   The gate has been exercised against the good bundle and nine deliberate
+   corruptions (aggregates emptied, one region unmapped, one aggregate short an
+   indicator, old-shaped bundle, country collapse, indicator dropped, stale
+   years, GDP wiped): it passes the first and rejects the rest with an accurate
+   message. Worth re-running after any change to the bundle shape —
+   `scripts/` has no harness for it, so extract the `node -e` body from
+   `refresh-data.yml` and run it with `node -e` (running it as a *file* changes
+   how `require("./…")` resolves and tests something CI never does).
 
 ---
 
@@ -211,12 +269,25 @@ Repo: <https://github.com/robertrouse/wdi-dashboard>
 ```bash
 npm run dev            # http://localhost:5173
 npm run build          # must stay clean
-npm run refresh:diff   # after any data change — read the "lost" column
+npm run refresh:diff   # after any data change — read the "lost" column AND
+                       # the regional-aggregates table under it
 ```
 
 For UI changes, exercise **all 15 focus metrics in both view levels**. That
-sweep has caught real bugs twice (band-metric sorting, region-scale mismatch)
-and it is cheap. Playwright against `npm run preview` works well for it.
+sweep has caught real bugs three times (band-metric sorting, region-scale
+mismatch, stale "median of the selected countries" copy left in the sidebar
+after the aggregates change) and it is cheap. Playwright against
+`npm run preview` works well for it; driving the focus `<select>` from the
+browser console works too, but note Vite HMR resets React state, so switch
+view level *after* your last edit or you will sweep the wrong view.
+
+After a change to region behaviour, check the numbers are aggregates and not
+medians — the tell is GDP, where the two differ by three orders of magnitude:
+
+```bash
+node -e 'const b=require("./public/data/wdi.json");console.log(b.regionSeries.EAS.gdp.v)'
+# ~3.4e13 (the region). If you see ~1.7e10 you are looking at a median country.
+```
 
 Data spot-checks against the source of truth are worth repeating after any
 pipeline change. Known-good values from the CSV seed (2024 vintage):

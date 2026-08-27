@@ -75,7 +75,7 @@ export default function FilterPanel({
         <Radio name="view" value="country" checked={view === "country"} onChange={setView}
                label="Countries" hint="One row per country, grouped by region" />
         <Radio name="view" value="region" checked={view === "region"} onChange={setView}
-               label="Regions" hint="Median of the selected countries in each region" />
+               label="Regions" hint="The World Bank's own published subtotal for each region" />
       </div>
 
       <div style={S.section}>

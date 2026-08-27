@@ -67,10 +67,10 @@ export function median(nums) {
  *    mean above the average of what the reader is looking at, or the
  *    comparison is a lie of omission.
  *
- *  - In region view the comparison set is the seven region medians, not the
- *    twenty-six countries behind them. Scoring a region median against a
- *    country-level distribution would push every region toward the middle and
- *    make the view look flatter than the world is.
+ *  - In region view the comparison set is the seven official regional
+ *    aggregates, not the couple of hundred countries behind them. Scoring a
+ *    regional aggregate against a country-level distribution would push every
+ *    region toward the middle and make the view look flatter than the world is.
  *
  * `rows` is anything with a `get(indicatorId)` method — country rows and
  * region roll-ups both qualify.
@@ -160,42 +160,41 @@ export function delta(rec, ind) {
 }
 
 /**
- * Region roll-up. Aggregating raw values across countries would be wrong for
- * most of these indicators (you cannot average percentages weighted by nothing,
- * and summing life expectancy is meaningless), so the region view reports the
- * MEDIAN of its member countries and says so in the tooltip.
+ * The region's benchmark: the World Bank's own published subtotal.
+ *
+ * This used to be a median of whichever member countries were on screen. It is
+ * not any more, and the reason matters. Every one of these indicators has a
+ * correct way to aggregate and they are not the same way — population is a sum,
+ * life expectancy is a population-weighted average, inflation is a median,
+ * homicides are aggregated by UNODC under its own method. A single roll-up rule
+ * cannot be right for all fifteen, and a median of member countries is right for
+ * almost none of them: it weights Tuvalu and China equally, so "Sub-Saharan
+ * Africa's GDP" came out as the GDP of its middle-ranked economy.
+ *
+ * The Bank already publishes each of these, aggregated the way that indicator
+ * should be aggregated. `data/regions.json` maps a region to the code of its
+ * official aggregate; the build scripts carry those series into `regionSeries`.
+ * `ind.aggregation` records which method was used, and the UI shows it — the
+ * fact that the method changes per metric is part of the lesson, not a detail
+ * to hide.
+ *
+ * Two consequences worth being explicit about:
+ *
+ *  - The value is FIXED. It covers every economy the Bank counts in that
+ *    region, so it does not move when the reader filters the country list.
+ *    Filtering decides which region rows appear, never what they say.
+ *
+ *  - There is no fallback. If a region has no published subtotal for an
+ *    indicator, it reads NA. Quietly swapping in a differently-computed number
+ *    would put two incompatible statistics in one column, which is exactly the
+ *    error this dashboard exists to teach people to avoid.
  */
-export function rollUpRegion(bundle, countryCodes, ind) {
-  const cur = [], prev = [], byYear = new Map();
-  let latestYear = null;
-
-  for (const cc of countryCodes) {
-    const rec = bundle.series[cc]?.[ind.id];
-    if (!rec || rec.v == null) continue;
-    cur.push(rec.v);
-    if (rec.p != null) prev.push(rec.p);
-    if (latestYear == null || rec.y > latestYear) latestYear = rec.y;
-    for (const [y, v] of rec.t) {
-      if (!byYear.has(y)) byYear.set(y, []);
-      byYear.get(y).push(v);
-    }
-  }
-  if (!cur.length) return null;
-
-  const t = [...byYear.entries()]
-    .filter(([, vs]) => vs.length >= Math.max(2, countryCodes.length * 0.4))
-    .sort((a, b) => a[0] - b[0])
-    .map(([y, vs]) => [y, median(vs)]);
-
-  return {
-    y: latestYear,
-    v: median(cur),
-    p: prev.length ? median(prev) : null,
-    py: null,
-    t,
-    n: cur.length,
-    aggregated: true,
-  };
+export function regionRecord(bundle, regionIdx, ind) {
+  const code = bundle.regionCodes?.[regionIdx];
+  if (!code) return null;
+  const rec = bundle.regionSeries?.[code]?.[ind.id];
+  if (!rec || rec.v == null) return null;
+  return { ...rec, aggregated: true, aggCode: code };
 }
 
 /**

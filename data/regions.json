@@ -1,0 +1,34 @@
+{
+  "note": [
+    "Maps each World Bank region to the code of its OFFICIAL regional aggregate,",
+    "so the dashboard can use the Bank's own published subtotal as the regional",
+    "benchmark rather than computing one from the countries on screen.",
+    "",
+    "These are the seven 'all income levels' aggregates. Do NOT substitute the",
+    "'excluding high income' variants (EAP, ECA, LAC, MNA, SSA) — those cover a",
+    "different set of economies and would not match the country rows above them.",
+    "",
+    "`names` exists because the two data paths disagree about region labels.",
+    "The REST API returns some names with trailing whitespace, and the World Bank",
+    "reclassified the Middle East region to include Afghanistan and Pakistan: the",
+    "January 2026 bulk CSV already carries the new name on the AGGREGATE row while",
+    "its COUNTRY rows still carry the old one. Matching on a list of accepted",
+    "names, compared with whitespace collapsed, absorbs both discrepancies.",
+    "Add a name here rather than teaching either script about a specific region."
+  ],
+  "aggregates": [
+    { "code": "EAS", "names": ["East Asia & Pacific"] },
+    { "code": "ECS", "names": ["Europe & Central Asia"] },
+    { "code": "LCN", "names": ["Latin America & Caribbean"] },
+    {
+      "code": "MEA",
+      "names": [
+        "Middle East, North Africa, Afghanistan & Pakistan",
+        "Middle East & North Africa"
+      ]
+    },
+    { "code": "NAC", "names": ["North America"] },
+    { "code": "SAS", "names": ["South Asia"] },
+    { "code": "SSF", "names": ["Sub-Saharan Africa"] }
+  ]
+}

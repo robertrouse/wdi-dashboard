@@ -35,6 +35,39 @@ raw counts, tiny decimals, billions. A single view must let a reader compare
   Background `#F4FBFF`, greys `#D8E9F4` / `#C5CED6` / `#50687A`.
 - **Legibility**: base body type >= 16px, table text >= 17px, no fine print.
 
+## Amendments
+
+### 2026-08-26 — regional benchmarks come from the World Bank, not from us
+
+**Supersedes the original region roll-up.** Region rows were the median of the
+member countries currently on screen. They are now the Bank's own published
+regional subtotal, carried in the bundle as `regionSeries` and mapped by
+`data/regions.json`. Rationale and the rules that follow are in CLAUDE.md
+invariant 6; the short version is that no single roll-up rule is correct for
+fifteen metrics, and the median made "East Asia & Pacific GDP" read as the GDP
+of its middle-ranked economy — $16.7B against a true $33.7T.
+
+**This changed the bundle shape**, so both data paths changed together, as the
+architecture note requires:
+
+- added `regionCodes` (parallel to `regions`, `null` where unmapped)
+- added `regionSeries` (same record shape as `series`, keyed by aggregate code)
+- added `aggShort` to each indicator in `data/indicators.json` — a short,
+  faithful restatement of the Bank's aggregation method, shown in the matrix
+  header
+
+Both `scripts/build_data.py` and `scripts/refresh_data.mjs` emit the new keys
+and were run to confirm identical top-level keys and identical record shapes.
+The API path gets the aggregates from the `country/all` pull it already makes,
+so the change costs no extra requests.
+
+**Behaviour change worth knowing:** the country filter no longer alters what a
+region row reports — an official aggregate covers the whole region. Filtering
+still decides which region rows appear. The sidebar hint, the row subtitle, the
+legend note and the detail-panel eyebrow were all reworded to match; leaving any
+of them saying "median of the selected countries" would have been a live lie
+about the number next to it.
+
 ## Phases
 | # | Phase | Output |
 |---|-------|--------|

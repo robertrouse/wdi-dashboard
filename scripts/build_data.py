@@ -15,17 +15,27 @@ Output shape (deliberately compact - this file ships to the browser):
     {
       "generated": "2026-08-26",
       "yearSpan": [2015, 2024],
-      "regions":    ["East Asia & Pacific", ...],
+      "regions":     ["East Asia & Pacific", ...],
+      "regionCodes": ["EAS", ...],          # parallel to regions; None if unmapped
       "indicators": [ ...contents of data/indicators.json... ],
       "countries":  [{"c":"USA","n":"United States","r":0,"i":"High income"}, ...],
       "series": {
          "USA": { "gdp": {"y": 2024, "v": 29184890000000, "p": 27720700000000,
                           "t": [[2015, 18...], ...] }, ... }
+      },
+      "regionSeries": {                     # the Bank's own regional subtotals
+         "EAS": { "gdp": {"y": 2025, "v": 33657..., ...}, ... }
       }
     }
 
     y = year of most recent observation      p = previous observation's value
     v = most recent value                    t = [year, value] trend pairs
+
+`regionSeries` records have exactly the same shape as country records. They are
+the OFFICIAL World Bank aggregates, not anything this script computes: each
+indicator is aggregated the way that indicator should be (a sum for population,
+a population-weighted average for life expectancy, UNODC's method for
+homicides), which no single roll-up rule of ours could reproduce.
 """
 import argparse, csv, json, sys
 from datetime import date
@@ -36,6 +46,23 @@ MAX_STALENESS = 8         # ignore a "latest" observation older than this many y
 
 def load_indicators(path):
     return json.loads(Path(path).read_text(encoding="utf8"))
+
+def norm(s):
+    """Collapse whitespace so region labels compare equal across data vintages."""
+    return " ".join(str(s or "").split())
+
+def load_regions(path):
+    """Region label -> official World Bank aggregate code.
+
+    See data/regions.json for why this is a list of accepted names rather than
+    a single one.
+    """
+    spec = json.loads(Path(path).read_text(encoding="utf8"))
+    by_name = {}
+    for agg in spec["aggregates"]:
+        for n in agg["names"]:
+            by_name[norm(n)] = agg["code"]
+    return by_name, [a["code"] for a in spec["aggregates"]]
 
 def load_countries(path):
     rows = []
@@ -56,7 +83,8 @@ def scan_tall(tall_path, wanted_codes, country_codes, min_year):
 
     Returns {country_code: {indicator_code: {year: value}}}. The file is 1+ GB,
     so it is never read into memory whole and rows are discarded as early as
-    possible.
+    possible. `country_codes` includes the official regional aggregate codes,
+    so the region benchmarks come out of the same single pass.
     """
     obs = {}
     csv.field_size_limit(10_000_000)
@@ -101,6 +129,7 @@ def main():
     ap.add_argument("--tall", required=True)
     ap.add_argument("--country", required=True)
     ap.add_argument("--indicators", default="data/indicators.json")
+    ap.add_argument("--regions", default="data/regions.json")
     ap.add_argument("--out", default="public/data/wdi.json")
     ap.add_argument("--min-year", type=int, default=2010)
     a = ap.parse_args()
@@ -109,9 +138,11 @@ def main():
     code2id = {i["code"]: i["id"] for i in inds}
     countries = load_countries(a.country)
     ccodes = {c["c"] for c in countries}
+    agg_by_name, agg_codes = load_regions(a.regions)
 
     print(f"[build] scanning {a.tall} …", file=sys.stderr)
-    obs = scan_tall(a.tall, set(code2id), ccodes, a.min_year)
+    obs = scan_tall(a.tall, set(code2id), ccodes | set(agg_codes), a.min_year)
+    agg_obs = {k: obs.pop(k) for k in agg_codes if k in obs}
     print(f"[build] {len(obs)} countries carry at least one selected indicator", file=sys.stderr)
 
     latest_year = max(
@@ -136,15 +167,41 @@ def main():
     regions = sorted({c["region"] for c in kept})
     ridx = {r: i for i, r in enumerate(regions)}
 
+    # Parallel to `regions`: the official aggregate code for each, or None if
+    # the region has no published subtotal (that region then reads NA, never a
+    # silently substituted figure computed some other way).
+    region_codes = [agg_by_name.get(norm(r)) for r in regions]
+    for r, code in zip(regions, region_codes):
+        if not code:
+            print(f"[build] WARNING: no official aggregate mapped for region {r!r}", file=sys.stderr)
+
+    region_series = {}
+    for code in filter(None, region_codes):
+        per = agg_obs.get(code)
+        if not per:
+            print(f"[build] WARNING: no observations for aggregate {code}", file=sys.stderr)
+            continue
+        rec = {}
+        for icode, by_year in per.items():
+            cond = condense(by_year, latest_year)
+            if cond:
+                rec[code2id[icode]] = cond
+        region_series[code] = rec
+    print("[build] regional aggregates: " + " ".join(
+        f"{c or '??'}={len(region_series.get(c, {}))}" for c in region_codes
+    ) + f" of {len(inds)} indicators", file=sys.stderr)
+
     bundle = {
         "generated": date.today().isoformat(),
         "source": "World Bank World Development Indicators (bulk CSV extract)",
         "yearSpan": [latest_year - TREND_YEARS + 1, latest_year],
         "regions": regions,
+        "regionCodes": region_codes,
         "indicators": inds,
         "countries": [{"c": c["c"], "n": c["n"], "r": ridx[c["region"]],
                        "i": c["i"], "iso2": c["iso2"]} for c in kept],
         "series": series,
+        "regionSeries": region_series,
     }
 
     out = Path(a.out)

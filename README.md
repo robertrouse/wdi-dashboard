@@ -192,9 +192,10 @@ break asset URLs.
 
 ```
 data/indicators.json        the glossary — units, direction, definitions, caveats
+data/regions.json           region -> official World Bank aggregate code
 scripts/build_data.py       seed bundle from a local bulk CSV
 scripts/refresh_data.mjs    recurring bundle from the World Bank API
-src/lib/kpi.js              normalization, scoring, deltas, region roll-ups
+src/lib/kpi.js              normalization, scoring, deltas, region benchmarks
 src/lib/format.js           unit-aware value formatting
 src/components/KpiGlyph     the performance mark
 src/components/Matrix       countries/regions × metrics
@@ -211,8 +212,13 @@ PLAN.md / CHECKPOINT.md     design decisions and build state
   "Middle East, North Africa, Afghanistan & Pakistan". South Asia is therefore
   smaller here than in older WDI vintages, and the region label changes
   depending on whether the bundle came from the API or from an older bulk CSV.
-- Region rows are **medians of the selected member countries**, not weighted
-  aggregates. Summing life expectancy or averaging unweighted percentages would
-  be wrong; the median is honest and the tooltip says so.
+- Region rows are the World Bank's **own published regional subtotals**, not
+  anything this project computes. Each indicator is aggregated the way that
+  indicator should be — population is a sum, life expectancy a
+  population-weighted average, inflation a median, homicides by UNODC's method
+  — and the matrix header names the method for whichever metric you are
+  looking at. Because these cover every economy in the region, a region row
+  does not change when you filter the country list; filtering decides which
+  regions are shown, not what they report.
 
 Source: World Bank, World Development Indicators (CC BY 4.0).

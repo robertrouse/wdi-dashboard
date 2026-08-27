@@ -52,7 +52,7 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
       >
         <div>
           <div className="eyebrow" style={{ color: "var(--blue-ice)" }}>
-            {row.kind === "region" ? "Region detail · median of member countries" : "Country detail"}
+            {row.kind === "region" ? "Region detail · official World Bank aggregate" : "Country detail"}
           </div>
           <h2 style={{ fontSize: "var(--t-sub)", lineHeight: 1.15, marginTop: 2 }}>{row.label}</h2>
           {row.sub && <div style={{ fontSize: "16px", color: "var(--raven-2)", marginTop: 2 }}>{row.sub}</div>}

@@ -66,4 +66,35 @@ if (lostTotal) {
 } else {
   console.log(`  No readings were lost.`);
 }
+
+/* The regional aggregates are the benchmark every region row is scored
+   against, so a silent gap here is worse than a missing country: it moves the
+   line everything else is measured from. Report them explicitly. */
+const codesBefore = before.regionCodes ?? [];
+const codesAfter = after.regionCodes ?? [];
+console.log(`\n  regional aggregates (official World Bank subtotals)`);
+if (!codesAfter.length) {
+  console.log(`  ⚠ the new bundle carries NO regional aggregates — every region row will read NA.`);
+} else {
+  let aggLost = 0;
+  console.log(`  ${"region".padEnd(26)} ${"code".padEnd(5)} ${"indicators".padStart(10)}  latest year`);
+  console.log(`  ${"-".repeat(26)} ${"-".repeat(5)} ${"-".repeat(10)}  ${"-".repeat(11)}`);
+  after.regions.forEach((name, i) => {
+    const code = codesAfter[i];
+    const recs = code ? after.regionSeries?.[code] ?? {} : {};
+    const prevCode = codesBefore[before.regions.indexOf(name)];
+    const prevRecs = prevCode ? before.regionSeries?.[prevCode] ?? {} : {};
+    const lost = Object.keys(prevRecs).filter((id) => !recs[id]).length;
+    aggLost += lost;
+    const maxY = Math.max(0, ...Object.values(recs).map((r) => r.y));
+    const n = Object.keys(recs).length;
+    console.log(
+      `  ${name.trim().slice(0, 26).padEnd(26)} ${String(code ?? "--").padEnd(5)} ` +
+      `${String(`${n}/${after.indicators.length}`).padStart(10)}  ${maxY || "-"}` +
+      (lost ? `  ⚠ ${lost} lost` : "") +
+      (code ? "" : "  ⚠ no aggregate mapped")
+    );
+  });
+  if (aggLost) console.log(`  ⚠ ${aggLost} region-indicator benchmarks LOST — region rows will read NA.`);
+}
 console.log();

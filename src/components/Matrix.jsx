@@ -36,6 +36,7 @@ export default function Matrix({
   rows, indicators, focus, scales, bundle, onSelectRow, selectedRow,
 }) {
   const glyphInds = indicators;
+  const regionView = rows.some((r) => r.kind === "region");
 
   return (
     <div style={{ overflowX: "auto", paddingBottom: 8 }}>
@@ -43,7 +44,7 @@ export default function Matrix({
         <thead>
           <tr style={{ borderBottom: "2px solid var(--blue-raven)" }}>
             <th style={{ ...th, textAlign: "left", minWidth: 210, paddingLeft: 4 }}>
-              {rows.some((r) => r.kind === "region") ? "Region" : "Country"}
+              {regionView ? "Region" : "Country"}
             </th>
             <th style={{ ...th, textAlign: "right", minWidth: 138 }}>
               <Tooltip content={<IndicatorCard ind={focus} />}>
@@ -51,6 +52,16 @@ export default function Matrix({
                   {focus.label}
                 </span>
               </Tooltip>
+              {/* Said once here rather than repeated on all seven rows. Which
+                  method the Bank uses changes with the metric — a sum for
+                  population, a weighted average for life expectancy — and that
+                  it changes is part of the point. */}
+              {regionView && focus.aggShort && (
+                <span style={{ display: "block", fontSize: "13px", fontWeight: 400,
+                               letterSpacing: 0, color: "var(--warm-grey)", marginTop: 3 }}>
+                  regional aggregate · {focus.aggShort}
+                </span>
+              )}
             </th>
             <th style={{ ...th, textAlign: "right", minWidth: 104 }}>Change</th>
             <th style={{ ...th, textAlign: "left", minWidth: 178, paddingLeft: 18 }}>
@@ -132,7 +143,7 @@ export default function Matrix({
                   </div>
                   {rec && (
                     <span style={{ fontSize: "13px", color: stale ? "var(--blaze)" : "var(--warm-grey)", display: "block", marginTop: 1 }}>
-                      {rec.aggregated ? `median of ${rec.n} · ` : ""}{rec.y}{stale ? " · older reading" : ""}
+                      {rec.y}{stale ? " · older reading" : ""}
                     </span>
                   )}
                 </td>

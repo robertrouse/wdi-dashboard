@@ -4,7 +4,7 @@ import Legend from "./components/Legend.jsx";
 import Matrix from "./components/Matrix.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
-import { buildScalesFromRows, rollUpRegion, score, PERF } from "./lib/kpi.js";
+import { buildScalesFromRows, regionRecord, score, PERF } from "./lib/kpi.js";
 import { formatValue } from "./lib/format.js";
 
 /* Default country set: three to five per World Bank region, chosen for regional
@@ -86,15 +86,23 @@ export default function App() {
       const regionsOn = activeRegions ?? bundle.regions.map((_, i) => i);
       return regionsOn
         .map((ri) => {
+          // The country filter still decides which regions are worth showing,
+          // but it no longer decides what they say: the row reports the World
+          // Bank's published subtotal for the whole region, not a roll-up of
+          // the reader's selection. Saying "N selected" here would imply the
+          // number moves with the filter, and it does not.
           const members = visibleCodes.filter((c) => byCode[c].r === ri);
           if (!members.length) return null;
           const cache = {};
+          const code = bundle.regionCodes?.[ri];
           return {
             kind: "region",
             id: `r${ri}`,
             label: bundle.regions[ri],
-            sub: `${members.length} selected · ${members.join(", ")}`,
-            get: (id) => (cache[id] ??= rollUpRegion(bundle, members, indicators.find((i) => i.id === id))),
+            sub: code
+              ? `World Bank aggregate ${code} · every economy in the region`
+              : "No official aggregate published for this region",
+            get: (id) => (cache[id] ??= regionRecord(bundle, ri, indicators.find((i) => i.id === id))),
           };
         })
         .filter(Boolean);
@@ -176,11 +184,16 @@ export default function App() {
   if (!bundle || !focus) return <Loading />;
 
   const scale = scales[focus.id];
+  const rowCount = rows.filter((r) => r.kind !== "groupHeader").length;
   const benchmarkNote =
     focus.direction === "band"
       ? `${focus.label} is scored against an explicit target of ${focus.target}% — the only indicator here that has one.`
       : scale?.benchmark != null
-      ? `Glyphs compare each row to the median of the ${rows.filter((r) => r.kind !== "groupHeader").length} ${view === "region" ? "regions" : "countries"} on screen — ${formatValue(scale.benchmark, focus)} for ${focus.label}. Change the selection and the benchmark moves with it.`
+      ? view === "region"
+        // Region rows are the Bank's published subtotals, so they do not move
+        // with the country filter. Only which regions are shown does.
+        ? `Rows are the World Bank's own regional aggregates. Glyphs compare each to the median of the ${rowCount} regions on screen — ${formatValue(scale.benchmark, focus)} for ${focus.label}. Show or hide a region and the benchmark moves; filtering countries does not change what a region reports.`
+        : `Glyphs compare each row to the median of the ${rowCount} countries on screen — ${formatValue(scale.benchmark, focus)} for ${focus.label}. Change the selection and the benchmark moves with it.`
       : "No benchmark available for the current selection.";
 
   return (

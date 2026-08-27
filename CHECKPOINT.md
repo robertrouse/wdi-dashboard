@@ -49,6 +49,29 @@ Run on Robert's Mac with live API access, which the authoring session lacked.
   clean at 228.93 kB / 71.80 kB gzipped. See the environment note in
   `CLAUDE.md`.
 
+## Regional benchmarks now come from the World Bank — 2026-08-26
+
+Region rows were the median of the member countries on screen; they are now the
+Bank's own published regional subtotal. See PLAN.md "Amendments" for the shape
+change and CLAUDE.md invariant 6 for the reasoning.
+
+- All 7 regions × 15 indicators resolve — no gaps, so no fallback path is used.
+- Verified both data paths emit identical top-level keys and record shapes.
+  The API path costs no extra requests (the aggregates already rode along in
+  the `country/all` pull and were being discarded).
+- Spot-checked against the live API: NAC/SSF/EAS GDP per capita 2025 match to
+  the decimal.
+- Swept all 15 focus metrics × both view levels in the browser, zero console
+  errors. The old sidebar copy ("Median of the selected countries in each
+  region") was caught by that sweep and fixed, along with the legend note, the
+  row subtitle and the detail-panel eyebrow.
+- Sanity gate rewritten and **actually exercised** for the first time: passes
+  the good bundle, rejects nine deliberate corruptions with accurate messages.
+  It also no longer hardcodes 15 indicators (closes old open item 4).
+
+Scale of the correction, for context: East Asia & Pacific GDP read **$16.7B**
+under the old median (its middle-ranked economy) against a true **$33.7T**.
+
 ## Immediate next actions
 1. Check `gh run list --event schedule` after **1 Sept 2026** — the monthly
    trigger has still never fired, and the repo is too new for it to have.
