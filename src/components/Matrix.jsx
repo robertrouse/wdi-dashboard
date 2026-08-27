@@ -39,10 +39,10 @@ export default function Matrix({
   const regionView = rows.some((r) => r.kind === "region");
 
   return (
-    <div style={{ overflowX: "auto", paddingBottom: 8 }}>
+    <div style={{ paddingBottom: 8 }}>
       <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 900 }}>
         <thead>
-          <tr style={{ borderBottom: "2px solid var(--blue-raven)" }}>
+          <tr>
             <th style={{ ...th, textAlign: "left", minWidth: 210, paddingLeft: 4 }}>
               {regionView ? "Region" : "Country"}
             </th>
@@ -83,7 +83,12 @@ export default function Matrix({
                   style={{
                     ...th, width: 44, padding: "0 3px 10px", height: 118, verticalAlign: "bottom",
                     cursor: onFocusMetric && !isFocus ? "pointer" : "default",
-                    background: isFocus ? "rgba(70,85,228,.07)" : undefined,
+                    // Opaque, and never `undefined` — an undefined value here
+                    // deletes the sticky header's background from the spread
+                    // above and the rows scroll straight through it. The focus
+                    // tint is rgba(70,85,228,.07) pre-composited on the page
+                    // background, since a translucent tint would do the same.
+                    background: isFocus ? "#E8EFFD" : "var(--background)",
                   }}
                 >
                   <Tooltip
@@ -232,9 +237,20 @@ export default function Matrix({
   );
 }
 
+/* Sticky, so the fifteen rotated metric labels are still there after a page of
+   countries — they are the only thing identifying the glyph columns, and since
+   they became clickable they are a control as well as a label.
+
+   The rule under the header is a box-shadow rather than a border: with
+   border-collapse:collapse a border on a sticky cell is owned by the collapsed
+   grid and does not travel with it, so it paints at the row's original position
+   and the header floats over the rows with nothing under it. */
 const th = {
   padding: "0 8px 12px", fontSize: "14px", fontWeight: 600,
   letterSpacing: "0.03em", color: "var(--ink)", verticalAlign: "bottom",
+  position: "sticky", top: 0, zIndex: 3,
+  background: "var(--background)",
+  boxShadow: "inset 0 -2px 0 var(--blue-raven)",
 };
 const td = { padding: "11px 8px", verticalAlign: "middle" };
 

@@ -270,7 +270,12 @@ export default function App() {
         }
       />
 
-      <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
+      {/* Scrolls in BOTH axes. The matrix used to own its own horizontal
+          scroller, but an element with overflow-x:auto is a scroll container in
+          its own right, and a sticky <thead> inside one sticks to that box —
+          which scrolls away with the page — instead of to the viewport. One
+          scroller is what makes the column headers stay put. */}
+      <main style={{ flex: 1, overflow: "auto", minWidth: 0 }}>
         <div style={{ padding: "18px 24px 70px" }}>
           <Legend />
 

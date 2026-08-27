@@ -127,7 +127,23 @@ Source material lives in the parent folder `../`:
     sorts last. Clicking a metric's column header sets the focus metric, and the
     order stays put — that is the point.
 
-14. **A sparkline's dotted reference and its colours are ONE decision.** The
+14. **There is exactly ONE scroll container: `<main>`, in both axes.** The
+    matrix used to own a `overflow-x: auto` wrapper, but an element with
+    `overflow-x: auto` is a scroll box in its own right, and `position: sticky`
+    inside one sticks to *that* box — which scrolls away with the page — so the
+    `<thead>` never stuck. If you reintroduce a wrapper scroller anywhere above
+    the table, the sticky column headers silently stop working.
+
+    Two related traps in the sticky header, both already hit:
+    - `border-collapse: collapse` means a border on a sticky cell belongs to
+      the collapsed grid and does not travel with it, so the rule under the
+      header paints at the row's original position. It is a `box-shadow`.
+    - Every header cell needs an OPAQUE background or the rows scroll through
+      it. Watch for `background: cond ? x : undefined` in a cell that spreads
+      `...th` — an explicit `undefined` deletes the inherited background, which
+      is exactly how the focus-column highlight broke it once.
+
+15. **A sparkline's dotted reference and its colours are ONE decision.** The
    line a reader sees must be the line the colours are measured from. The rules
    live in `referenceFor()` in `src/lib/kpi.js`, and each exclusion was measured
    rather than guessed:
