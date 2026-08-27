@@ -2,7 +2,13 @@ import KpiGlyph from "./KpiGlyph.jsx";
 import { PERF } from "../lib/kpi.js";
 
 /* The legend is not decoration — it is the key to the normalization scheme,
-   so it sits above the data and is set at readable size, not in fine print. */
+   so it sits above the data and is set at readable size, not in fine print.
+
+   It used to carry a running note about the current focus metric's benchmark
+   ("Inflation is scored against an explicit target of 2%…"). That is gone: it
+   changed on every metric switch, restated what the column header and the row
+   tooltips already say, and was the tallest thing in the bar. What remains is
+   the part a reader cannot get anywhere else — what the glyph shapes mean. */
 
 const ITEMS = [
   { perf: PERF.STRONG, dev: 0.85, label: "Clearly better", hint: "top of the peer set" },
@@ -12,7 +18,7 @@ const ITEMS = [
   { perf: PERF.NONE, dev: 0, label: "No recent data", hint: "not measured lately" },
 ];
 
-export default function Legend({ benchmarkNote }) {
+export default function Legend() {
   return (
     <div
       style={{
@@ -31,14 +37,6 @@ export default function Legend({ benchmarkNote }) {
           </div>
         </div>
       ))}
-      <div
-        style={{
-          marginLeft: "auto", fontSize: "14px", color: "var(--warm-grey)",
-          maxWidth: 330, lineHeight: 1.35, borderLeft: "2px solid var(--cool-grey)", paddingLeft: 16,
-        }}
-      >
-        {benchmarkNote}
-      </div>
     </div>
   );
 }

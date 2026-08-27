@@ -5,7 +5,6 @@ import Matrix from "./components/Matrix.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
 import { buildScalesFromRows, regionRecord, worldRecord, score, PERF } from "./lib/kpi.js";
-import { formatValue } from "./lib/format.js";
 
 /* Default country set: three to five per World Bank region, chosen for regional
    balance rather than economic weight, so the region grouping actually carries
@@ -230,20 +229,6 @@ export default function App() {
   if (err) return <Fatal msg={`Could not load the data bundle (${err}).`} />;
   if (!bundle || !focus) return <Loading />;
 
-  const scale = scales[focus.id];
-  // Peers only: the aggregate rows are shown but never set the benchmark, so
-  // counting them here would overstate what the median was taken over.
-  const rowCount = rows.filter((r) => r.kind === "country" || r.kind === "region").length;
-  const benchmarkNote =
-    focus.direction === "band"
-      ? `${focus.label} is scored against an explicit target of ${focus.target}% — the only indicator here that has one.`
-      : scale?.benchmark != null
-      ? view === "region"
-        // Region rows are the Bank's published subtotals, so they do not move
-        // with the country filter. Only which regions are shown does.
-        ? `Rows are the World Bank's own regional aggregates. Glyphs compare each to the median of the ${rowCount} regions on screen — ${formatValue(scale.benchmark, focus)} for ${focus.label}. Show or hide a region and the benchmark moves; filtering countries does not change what a region reports.`
-        : `Glyphs compare each row to the median of the ${rowCount} countries on screen — ${formatValue(scale.benchmark, focus)} for ${focus.label}. Change the selection and the benchmark moves with it.`
-      : "No benchmark available for the current selection.";
 
   // How many controls are away from their default — shown on the button so a
   // collapsed panel cannot hide the fact that the view is filtered.
@@ -284,7 +269,7 @@ export default function App() {
 
       <main style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
         <div style={{ padding: "18px 24px 70px" }}>
-          <Legend benchmarkNote={benchmarkNote} />
+          <Legend />
 
           {rows.length === 0 ? (
             <Empty onlyWeak={onlyWeak} />
