@@ -14,8 +14,15 @@
     "January 2026 bulk CSV already carries the new name on the AGGREGATE row while",
     "its COUNTRY rows still carry the old one. Matching on a list of accepted",
     "names, compared with whitespace collapsed, absorbs both discrepancies.",
-    "Add a name here rather than teaching either script about a specific region."
+    "Add a name here rather than teaching either script about a specific region.",
+    "",
+    "`world` is the same idea one level up. A country's sparkline is drawn",
+    "against its region's aggregate; a region's sparkline needs something to be",
+    "drawn against in turn, and the World aggregate is the only honest choice",
+    "from the same source. It is kept separate from `aggregates` because the",
+    "world is not a region and must never appear as a row."
   ],
+  "world": { "code": "WLD", "names": ["World"] },
   "aggregates": [
     { "code": "EAS", "names": ["East Asia & Pacific"] },
     { "code": "ECS", "names": ["Europe & Central Asia"] },

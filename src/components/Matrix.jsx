@@ -4,7 +4,7 @@ import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import Tooltip, { IndicatorCard } from "./Tooltip.jsx";
 import { formatValue } from "../lib/format.js";
-import { score, delta, PERF } from "../lib/kpi.js";
+import { score, delta, referenceFor, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
    The main view: countries (or regions) down the side, metrics across the top.
@@ -160,9 +160,10 @@ export default function Matrix({
                 <td style={{ ...td, paddingLeft: 18 }}>
                   <Sparkline
                     points={rec?.t}
+                    reference={referenceFor(bundle, row, focus)}
+                    ind={focus}
                     color={PERF_COLOR[sc.perf === PERF.NONE ? PERF.NONE : sc.perf]}
                     dotColor={dl.favorable === false ? "var(--red-cerise)" : dl.favorable === true ? "var(--blue-maven)" : "var(--warm-grey)"}
-                    target={focus.target ?? null}
                   />
                 </td>
 

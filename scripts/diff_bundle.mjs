@@ -96,5 +96,14 @@ if (!codesAfter.length) {
     );
   });
   if (aggLost) console.log(`  ⚠ ${aggLost} region-indicator benchmarks LOST — region rows will read NA.`);
+
+  const wNow = Object.keys(after.worldSeries ?? {}).length;
+  const wWas = Object.keys(before.worldSeries ?? {}).length;
+  const wMax = Math.max(0, ...Object.values(after.worldSeries ?? {}).map((r) => r.y));
+  console.log(
+    `  ${"World (sparkline reference)".padEnd(26)} ${"WLD".padEnd(5)} ` +
+    `${String(`${wNow}/${after.indicators.length}`).padStart(10)}  ${wMax || "-"}` +
+    (wNow < wWas ? `  ⚠ ${wWas - wNow} lost` : "")
+  );
 }
 console.log();

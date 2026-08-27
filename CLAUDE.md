@@ -41,9 +41,10 @@ Source material lives in the parent folder `../`:
    distribution flattens the view and is wrong.
 4. **"No data" is a distinct state** (`PERF.NONE`, dashed circle, `NA`). Never
    render a missing value as zero, blank, or bottom-ranked.
-5. **Sparklines are scaled to their own range.** They encode shape and
-   direction only. If you ever put them on a shared axis, the tooltip claim
-   that magnitude is not comparable becomes a lie.
+5. **Sparkline height is never comparable between rows.** Each is scaled to its
+   own values plus its own reference (see 9) — never to a shared axis across
+   rows. Shape, colour and where the trace crosses its reference are the
+   comparable parts; vertical extent is not, and no copy may imply it is.
 6. **Region rows are the World Bank's own published subtotals** — never a
    roll-up this project computes. `data/regions.json` maps each region to its
    official aggregate code (the seven "all income levels" ones: EAS, ECS, LCN,
@@ -81,6 +82,29 @@ Source material lives in the parent folder `../`:
    a component to add a metric, the abstraction has leaked; fix that instead.
 8. **Type stays large.** Body 17px, nothing below 15px, no fine print. Robert
    asked for this explicitly and it is a stated design goal, not a default.
+   (Note the design does not actually meet this: secondary lines in `Matrix.jsx`
+   have always been 13-13.5px. Either raise them or restate what the floor
+   covers — do not quietly cite this line as if it were true.)
+
+9. **A sparkline's dotted reference and its colours are ONE decision.** The
+   line a reader sees must be the line the colours are measured from. The rules
+   live in `referenceFor()` in `src/lib/kpi.js`, and each exclusion was measured
+   rather than guessed:
+   - Rated metrics get their peer aggregate as a **time series** — a country
+     against its region, a region against the World. Never a flat line at the
+     latest value: that invents crossings that never happened.
+   - Band metrics get the target band, because "better" means inside it.
+   - **Totals get nothing.** GDP, population and net migration aggregate by
+     summing, so a country is below its region by construction — one possible
+     answer — and forcing that figure into the vertical range flattened the
+     country's own decade to under a pixel in 205 of 212 cases.
+   - **No favourable direction gets nothing.** Urbanisation: the colours would
+     encode nothing while costing 100 of 217 countries most of their range.
+
+   `ind.aggKind` (`total` | `level`) drives the first exclusion and is derived
+   from the Bank's own aggregation method, so adding an indicator stays a
+   data-only change (invariant 7). Rows without a reference keep the plain
+   self-scaled trace and single performance colour they had before.
 
 ## Brand tokens
 
@@ -134,7 +158,8 @@ Bundle shape:
   indicators:[…],
   countries:[{c,n,r,i,iso2}],
   series:{      CCC: { indicatorId: { y, v, p, py, t:[[year,value],…] } } },
-  regionSeries:{ EAS: { indicatorId: { y, v, p, py, t:[[year,value],…] } } } }
+  regionSeries:{ EAS: { indicatorId: { y, v, p, py, t:[[year,value],…] } } },
+  worldSeries:{        indicatorId: { y, v, p, py, t:[[year,value],…] } } }
 ```
 `y`/`v` latest year and value · `p`/`py` previous value and its year ·
 `t` trend window.
@@ -144,6 +169,11 @@ the same scoring, delta and sparkline code runs over both. They hold the World
 Bank's official regional subtotals (invariant 6). `regionCodes[i]` is the
 aggregate code for `regions[i]`; a `null` there means that region has no
 published aggregate and its rows read `NA`.
+
+`worldSeries` is the WLD aggregate, in the same record shape. It is not a
+region and must never be a row — it exists so a REGION's sparkline has
+something to be drawn against, the way a country's is drawn against its
+region. `data/regions.json` carries its code under `world`.
 
 **Region labels differ between the two data paths and that is expected.** The
 API returns the post-reclassification names, some with trailing whitespace

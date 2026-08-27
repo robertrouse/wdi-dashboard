@@ -68,6 +68,41 @@ legend note and the detail-panel eyebrow were all reworded to match; leaving any
 of them saying "median of the selected countries" would have been a live lie
 about the number next to it.
 
+### 2026-08-27 — sparklines carry a benchmark
+
+Each sparkline now draws a dotted reference and colours the trace by which side
+of it the row was on in each year, with a hover readout giving year, value and
+benchmark. The reference is a **time series**, not a flat line at the latest
+value, which would manufacture crossings that never happened.
+
+The reference and the colouring are deliberately one decision — the dotted line
+a reader sees is the line the colours are measured from. Where nothing can be
+compared, nothing is drawn, and both exclusions were measured rather than
+assumed:
+
+- **Totals get no reference.** GDP, population and net migration aggregate by
+  summing, so a country is below its region by construction. Forcing that
+  figure into the vertical range flattened the country's own decade to under a
+  pixel in 205 of 212 cases for GDP, 215 of 217 for population.
+- **Metrics with no favourable direction get none either.** Urbanisation would
+  have cost 100 of 217 countries most of their vertical range to encode nothing.
+
+Those rows keep the plain self-scaled trace and single performance colour they
+had before. Overall 8.4% of country-metric rows sit under 3px of trace, against
+roughly a third if the reference had been applied everywhere.
+
+Shape change (both data paths again):
+
+- added `worldSeries` (WLD) — what a *region* row is drawn against. Kept out of
+  `regions`/`regionCodes` because the world is not a region and must not be a row.
+- added `aggKind` (`total` | `level`) to each indicator, derived from the Bank's
+  own aggregation method, so the exclusion above stays data-driven.
+
+**Trap worth remembering:** the bundle embeds a *copy* of `data/indicators.json`.
+Editing the glossary without rebuilding the bundle leaves the app reading the old
+metadata — that is exactly how GDP briefly kept a reference line it should never
+have had. Any glossary change needs a data rebuild before it takes effect.
+
 ## Phases
 | # | Phase | Output |
 |---|-------|--------|

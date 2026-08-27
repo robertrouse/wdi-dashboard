@@ -72,6 +72,27 @@ change and CLAUDE.md invariant 6 for the reasoning.
 Scale of the correction, for context: East Asia & Pacific GDP read **$16.7B**
 under the old median (its middle-ranked economy) against a true **$33.7T**.
 
+## Sparklines carry a benchmark — 2026-08-27
+
+Dotted reference line, trace coloured by which side of it each year fell on, and
+a hover readout (year · value · benchmark · better/worse). See PLAN.md
+"Amendments" and CLAUDE.md invariant 9.
+
+- The reference is a time series, so 2016 is compared with the 2016 benchmark.
+- Country rows reference their region; region rows reference the new World (WLD)
+  aggregate; inflation references its target band.
+- GDP, population, net migration and urbanisation get NO reference — measured,
+  not assumed: applying it flattened 205/212 countries to under a pixel for GDP
+  and encoded nothing for urbanisation. Those keep their old self-scaled trace.
+- Verified: all 15 metrics in both view levels, detail panel, hover readout with
+  a real pointer, zero console errors. Both data paths emit identical shapes.
+- Gate now covers `worldSeries`; re-exercised against 11 corruptions, all caught.
+
+**Trap this exposed:** the bundle embeds a copy of `data/indicators.json`. I
+added `aggKind` to the glossary but the app kept reading the old copy, so GDP
+briefly kept a reference line it should never have had. A glossary edit does
+nothing until the data is rebuilt. Documented in PLAN.md and README.
+
 ## Immediate next actions
 1. Check `gh run list --event schedule` after **1 Sept 2026** — the monthly
    trigger has still never fired, and the repo is too new for it to have.

@@ -62,8 +62,12 @@ jobs:
               const got = Object.keys(b.regionSeries?.[code] ?? {}).length;
               if (got < expected) errs.push(`aggregate ${code} carries ${got}/${expected} indicators`);
             }
+            // The World aggregate is what a REGION row's sparkline is drawn
+            // against. Losing it strips the reference line off the region view.
+            const world = Object.keys(b.worldSeries ?? {}).length;
+            if (world < expected) errs.push(`world aggregate carries ${world}/${expected} indicators`);
             if (errs.length) { console.error("REFUSING TO COMMIT:", errs.join("; ")); process.exit(1); }
-            console.log(`ok — ${b.countries.length} countries, ${mapped.length} regional aggregates, data through ${b.yearSpan[1]}`);
+            console.log(`ok — ${b.countries.length} countries, ${mapped.length} regional aggregates + world, data through ${b.yearSpan[1]}`);
           '
 
       - name: Commit if changed

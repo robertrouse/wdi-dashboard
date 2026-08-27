@@ -25,7 +25,9 @@ Output shape (deliberately compact - this file ships to the browser):
       },
       "regionSeries": {                     # the Bank's own regional subtotals
          "EAS": { "gdp": {"y": 2025, "v": 33657..., ...}, ... }
-      }
+      },
+      "worldSeries": { "gdp": {...}, ... }   # WLD; the reference a REGION row's
+                                             # sparkline is drawn against
     }
 
     y = year of most recent observation      p = previous observation's value
@@ -62,7 +64,8 @@ def load_regions(path):
     for agg in spec["aggregates"]:
         for n in agg["names"]:
             by_name[norm(n)] = agg["code"]
-    return by_name, [a["code"] for a in spec["aggregates"]]
+    world = (spec.get("world") or {}).get("code")
+    return by_name, [a["code"] for a in spec["aggregates"]], world
 
 def load_countries(path):
     rows = []
@@ -138,11 +141,12 @@ def main():
     code2id = {i["code"]: i["id"] for i in inds}
     countries = load_countries(a.country)
     ccodes = {c["c"] for c in countries}
-    agg_by_name, agg_codes = load_regions(a.regions)
+    agg_by_name, agg_codes, world_code = load_regions(a.regions)
+    pull = set(agg_codes) | ({world_code} if world_code else set())
 
     print(f"[build] scanning {a.tall} …", file=sys.stderr)
-    obs = scan_tall(a.tall, set(code2id), ccodes | set(agg_codes), a.min_year)
-    agg_obs = {k: obs.pop(k) for k in agg_codes if k in obs}
+    obs = scan_tall(a.tall, set(code2id), ccodes | pull, a.min_year)
+    agg_obs = {k: obs.pop(k) for k in pull if k in obs}
     print(f"[build] {len(obs)} countries carry at least one selected indicator", file=sys.stderr)
 
     latest_year = max(
@@ -187,9 +191,22 @@ def main():
             if cond:
                 rec[code2id[icode]] = cond
         region_series[code] = rec
+    # The World aggregate: the reference a REGION row is drawn against, the way
+    # a country row is drawn against its region. Not a region, so not a row.
+    world_series = {}
+    if world_code:
+        per = agg_obs.get(world_code)
+        if per:
+            for icode, by_year in per.items():
+                cond = condense(by_year, latest_year)
+                if cond:
+                    world_series[code2id[icode]] = cond
+        else:
+            print(f"[build] WARNING: no observations for the world aggregate {world_code}", file=sys.stderr)
+
     print("[build] regional aggregates: " + " ".join(
         f"{c or '??'}={len(region_series.get(c, {}))}" for c in region_codes
-    ) + f" of {len(inds)} indicators", file=sys.stderr)
+    ) + f" world={len(world_series)} of {len(inds)} indicators", file=sys.stderr)
 
     bundle = {
         "generated": date.today().isoformat(),
@@ -202,6 +219,7 @@ def main():
                        "i": c["i"], "iso2": c["iso2"]} for c in kept],
         "series": series,
         "regionSeries": region_series,
+        "worldSeries": world_series,
     }
 
     out = Path(a.out)

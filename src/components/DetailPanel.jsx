@@ -2,7 +2,7 @@ import KpiGlyph from "./KpiGlyph.jsx";
 import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import { formatValue, splitValue, clamp } from "../lib/format.js";
-import { score, delta, trendSlope, PERF } from "../lib/kpi.js";
+import { score, delta, trendSlope, referenceFor, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
    Country detail.
@@ -128,10 +128,11 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                   <div>
                     <Sparkline
                       points={rec?.t}
+                      reference={referenceFor(bundle, row, ind)}
+                      ind={ind}
                       width={175} height={44} showDots
                       color={PERF_COLOR[sc.perf]}
                       dotColor={dl.favorable === false ? "var(--red-cerise)" : dl.favorable === true ? "var(--blue-maven)" : "var(--warm-grey)"}
-                      target={ind.target ?? null}
                     />
                     {slope != null && (
                       <div style={{ fontSize: "13px", color: "var(--warm-grey)", marginTop: 2 }}>

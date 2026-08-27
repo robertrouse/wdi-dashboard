@@ -17,7 +17,7 @@ doing?" across all of them at once, and no shared axis can carry them.
 | Targets beat benchmarks where they exist | Inflation scores against a 2% band; everything else against the peer median |
 | The benchmark follows the selection | Change the country set and every glyph re-scores |
 | "No data" is a state, not a zero | Adult literacy renders `NA`, never an empty or bottom-ranked cell |
-| Sparklines show shape, not magnitude | Each line scaled to its own range |
+| Sparklines show shape and standing, not magnitude | Each scaled to its own range, with a dotted peer benchmark and colour by which side of it each year fell on |
 | One structure, not one panel per metric | Adding an indicator is a row in `data/indicators.json` |
 
 This is a web reimplementation of "Multiple Key Performance Metrics" (Robert
@@ -159,14 +159,26 @@ the Tableau glossary sheet this project grew out of:
   "group": "Health & Education",
   "prefix": "", "suffix": "yrs", "decimals": 1, "scale": "plain",
   "direction": "up", "target": null, "targetBand": null,
+  "aggregation": "Weighted average", "aggShort": "weighted average",
+  "aggKind": "level",
   "definition": "…", "caveat": "…"
 }
 ```
 
 `direction` is `up`, `down`, `band` (needs `target` + `targetBand`) or `none`.
-`scale` is `compact` (K/M/B/T) or `plain`. Add the row, re-run the data build,
-and the indicator appears in the matrix, the filter list, the focus-metric
-selector and the detail panel. No component changes.
+`scale` is `compact` (K/M/B/T) or `plain`.
+
+`aggregation` is the World Bank's own method, `aggShort` a short faithful
+restatement of it (shown in the matrix header in region view), and `aggKind` is
+`total` when that method sums its members — `Sum`, `Gap-filled total` — or
+`level` otherwise. **`aggKind` matters:** a `total` gets no sparkline benchmark,
+because a country cannot be above the total it is part of. Get it wrong and the
+metric grows a dotted line that means nothing.
+
+Add the row, re-run the data build, and the indicator appears in the matrix, the
+filter list, the focus-metric selector and the detail panel. No component
+changes. The bundle embeds a *copy* of this file, so a glossary edit does not
+take effect until you rebuild the data.
 
 ## First-time setup
 
@@ -220,5 +232,19 @@ PLAN.md / CHECKPOINT.md     design decisions and build state
   looking at. Because these cover every economy in the region, a region row
   does not change when you filter the country list; filtering decides which
   regions are shown, not what they report.
+
+- **Sparklines carry a benchmark.** Where a metric can be judged better or
+  worse, the dotted line is the peer benchmark for that row — a country against
+  its own region, a region against the World, inflation against its target band
+  — and the trace is coloured by which side of it each year fell on. The
+  benchmark is a time series, so a 2016 reading is compared with the 2016
+  benchmark rather than with today's. Hover any point for the year, the value,
+  and the benchmark it is read against.
+- Three metrics carry no dotted line, deliberately. GDP, population and net
+  migration aggregate by *summing* their members, so a country sits below its
+  region's figure by definition and the comparison has only one possible
+  answer; urbanisation has no favourable direction to colour. Those keep a
+  plain self-scaled trace. Sparkline height is never comparable between rows in
+  any case — only shape, colour and the crossings are.
 
 Source: World Bank, World Development Indicators (CC BY 4.0).

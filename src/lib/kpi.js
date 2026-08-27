@@ -197,6 +197,58 @@ export function regionRecord(bundle, regionIdx, ind) {
   return { ...rec, aggregated: true, aggCode: code };
 }
 
+/** The World aggregate — same source, one level up from a region. */
+export function worldRecord(bundle, ind) {
+  const rec = bundle.worldSeries?.[ind.id];
+  if (!rec || rec.v == null) return null;
+  return { ...rec, aggregated: true, aggCode: "WLD" };
+}
+
+/**
+ * What a row's sparkline is drawn against, and therefore what its colours mean.
+ *
+ * The reference and the colouring are one decision, not two: the dotted line a
+ * reader sees has to be the line the colours are measured from, or the chart
+ * says something it does not mean.
+ *
+ *   band metrics  -> the target band. "Better" is inside it, so scoring
+ *                    inflation against a regional average would answer a
+ *                    question nobody asked.
+ *   region rows   -> the World aggregate.
+ *   country rows  -> that country's own region aggregate.
+ *
+ * Returns the full trend, not a single latest value: comparing a 2016 reading
+ * against a 2025 benchmark would manufacture crossings that never happened.
+ */
+export function referenceFor(bundle, row, ind) {
+  if (ind.direction === "band" && ind.targetBand) {
+    return { kind: "band", band: ind.targetBand, label: "target" };
+  }
+
+  // A TOTAL is not a benchmark. GDP, population and net migration aggregate by
+  // summing their members, so a country sits below its region's figure by
+  // construction and the comparison has exactly one possible answer. Worse, the
+  // aggregate is so much larger that forcing it into the vertical range flattens
+  // the country's own decade to under a pixel — measured at 205 of 212 countries
+  // for GDP. Those rows keep a self-scaled trace and their overall performance
+  // colour. Only aggregates that express a typical LEVEL can be compared to.
+  if (ind.aggKind === "total") return null;
+
+  // No favourable direction, nothing for the colour to say. Urbanisation is the
+  // only one left in this case, and a context line there costs 100 of 217
+  // countries most of their vertical range to encode nothing. The reference is
+  // drawn exactly where it can be compared against, and nowhere else.
+  if (ind.direction !== "up" && ind.direction !== "down") return null;
+
+  if (row.kind === "region") {
+    const rec = worldRecord(bundle, ind);
+    return rec ? { kind: "series", points: rec.t, label: "World" } : null;
+  }
+  const rec = row.region == null ? null : regionRecord(bundle, row.region, ind);
+  if (!rec) return null;
+  return { kind: "series", points: rec.t, label: bundle.regions[row.region]?.trim() ?? "Region" };
+}
+
 /**
  * Least-squares slope over the sparkline window.
  *

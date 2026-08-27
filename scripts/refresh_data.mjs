@@ -104,7 +104,9 @@ const aggCodeByName = new Map();
 for (const { code, names } of regionMap.aggregates) {
   for (const n of names) aggCodeByName.set(norm(n), code);
 }
+const WORLD = regionMap.world?.code ?? null;
 const aggCodes = new Set(regionMap.aggregates.map((a) => a.code));
+if (WORLD) aggCodes.add(WORLD);   // captured the same way, stored separately
 const presentAggs = new Set(economies.filter((e) => aggCodes.has(e.id)).map((e) => e.id));
 for (const code of aggCodes) {
   if (!presentAggs.has(code)) console.error(`[refresh] WARNING: aggregate ${code} is absent from the economy list`);
@@ -182,9 +184,22 @@ for (const code of regionCodes.filter(Boolean)) {
   }
   regionSeries[code] = rec;
 }
+// The World aggregate: the reference a REGION row is drawn against, the way a
+// country row is drawn against its region. Not a region, so not in `regions`.
+const worldSeries = {};
+if (WORLD && aggObs[WORLD]) {
+  for (const [id, byYear] of Object.entries(aggObs[WORLD])) {
+    const cond = condense(byYear, latestYear);
+    if (cond) worldSeries[id] = cond;
+  }
+} else if (WORLD) {
+  console.error(`[refresh] WARNING: no observations for the world aggregate ${WORLD}`);
+}
+
 console.error(
   `[refresh] regional aggregates: ` +
-  regionCodes.map((c, i) => `${c ?? "??"}=${c ? Object.keys(regionSeries[c] ?? {}).length : 0}`).join(" ") +
+  regionCodes.map((c) => `${c ?? "??"}=${c ? Object.keys(regionSeries[c] ?? {}).length : 0}`).join(" ") +
+  ` world=${Object.keys(worldSeries).length}` +
   ` of ${indicators.length} indicators`
 );
 
@@ -198,6 +213,7 @@ const bundle = {
   countries: kept.map((c) => ({ c: c.c, n: c.n, r: ridx[c.region], i: c.i, iso2: c.iso2 })),
   series,
   regionSeries,
+  worldSeries,
 };
 
 const out = "public/data/wdi.json";

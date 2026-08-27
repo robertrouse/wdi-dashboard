@@ -270,8 +270,19 @@ function Method({ bundle }) {
         a $29&nbsp;trillion economy and a 2.1% inflation rate comparable in the same glance.
       </p>
       <p>
-        Sparklines are scaled to their own range, so they show direction and shape, never
-        magnitude. Arrows point the way the number moved and are coloured by whether that
+        Each <strong>sparkline</strong> is scaled to its own range, so height is never
+        comparable between rows — only shape is. Where a metric can be judged better or
+        worse, the dotted line is the peer benchmark for that row (a country against its
+        region, a region against the World, inflation against its target band), and the
+        trace is coloured by which side of it that year fell on. Hover any point for the
+        year, the value and the benchmark it is being read against.
+      </p>
+      <p>
+        Three metrics carry no dotted line. GDP, population and net migration aggregate by
+        summing their members, so a country is below its region's figure by definition and
+        the comparison has only one answer; urbanisation has no favourable direction to
+        colour. Those keep a plain self-scaled trace rather than a benchmark that would
+        mean nothing. Arrows point the way the number moved and are coloured by whether that
         movement was good — falling under-5 mortality and rising life expectancy are both blue.
       </p>
       <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", borderTop: "1px solid var(--rule)", paddingTop: 14 }}>
