@@ -25,6 +25,14 @@ import { indicatorUrl, economyUrl } from "../lib/sources.js";
    that the *shape* column is normalized while the *number* column never is.
    -------------------------------------------------------------------------- */
 
+/* The value block's geometry, mirroring Matrix so the two surfaces agree. */
+const D_GLYPH_SIZE = 26;
+const D_GLYPH_GAP = 10;
+const D_YEAR_SIZE = 13;
+const D_YEAR_LEAD = 1.05;
+const D_YEAR_GAP = -3;
+const D_YEAR_PULL = -(D_YEAR_SIZE * D_YEAR_LEAD + D_YEAR_GAP);
+
 const PERF_COLOR = {
   [PERF.STRONG]: "var(--blue-maven)",
   [PERF.MID]: "var(--blaze)",
@@ -165,14 +173,21 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
-                    <div style={{ textAlign: "right", minWidth: 0 }}>
+                  {/* Same arrangement as the matrix: the glyph rides the
+                      number's own line rather than the number-plus-year stack,
+                      and the year is pulled out of the flow so it cannot drag
+                      the pair off centre. See GLYPH/YEAR constants above. */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: D_GLYPH_GAP, justifyContent: "flex-end" }}>
                       <Value v={rec?.v} ind={ind} size="19px" unitSize="13px" />
-                      <div style={{ fontSize: "13px", color: "var(--warm-grey)", whiteSpace: "nowrap" }}>
-                        {rec ? rec.y : "—"}
-                      </div>
+                      <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={D_GLYPH_SIZE} />
                     </div>
-                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={26} />
+                    <div style={{ fontSize: `${D_YEAR_SIZE}px`, lineHeight: D_YEAR_LEAD,
+                                  marginTop: D_YEAR_GAP, marginBottom: D_YEAR_PULL,
+                                  textAlign: "right", marginRight: D_GLYPH_SIZE + D_GLYPH_GAP,
+                                  color: "var(--warm-grey)", whiteSpace: "nowrap" }}>
+                      {rec ? rec.y : "—"}
+                    </div>
                   </div>
 
                   <div style={{ textAlign: "right" }}>

@@ -21,6 +21,16 @@ import { delta, referenceFor, benchmarkFor, scoreRow, shareOfWorld, PERF } from 
 const GLYPH_SIZE = 28;
 const GLYPH_GAP = 9;
 
+/* The year is taken out of the cell's flow height — its own line box is pulled
+   back off the bottom margin — so the value line is what verticalAlign:middle
+   centres. Left in the flow it dragged the number and glyph 8px above the row's
+   centreline to make room for a caption. It still renders where it always did,
+   just below the pair, inside the cell's bottom padding. */
+const YEAR_SIZE = 13;
+const YEAR_LEAD = 1.05;   // its own leading, not a gap: half of it sat above the digits
+const YEAR_GAP = -3;      // closes the slack under the number's line box
+const YEAR_PULL = -(YEAR_SIZE * YEAR_LEAD + YEAR_GAP);
+
 const PERF_COLOR = {
   [PERF.STRONG]: "var(--blue-maven)",
   [PERF.MID]: "var(--blaze)",
@@ -240,7 +250,8 @@ export default function Matrix({
                       anything left inside becomes a flex SIBLING of the value
                       row and lands beside the glyph instead of beneath it. */}
                   {rec && (
-                    <div style={{ fontSize: "13px", lineHeight: 1.2, marginTop: 1,
+                    <div style={{ fontSize: `${YEAR_SIZE}px`, lineHeight: YEAR_LEAD,
+                                  marginTop: YEAR_GAP, marginBottom: YEAR_PULL,
                                   textAlign: "right", marginRight: GLYPH_SIZE + GLYPH_GAP,
                                   color: stale ? "var(--blaze)" : "var(--warm-grey)" }}>
                       {rec.y}{stale ? " · older reading" : ""}

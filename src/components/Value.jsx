@@ -19,13 +19,18 @@ export default function Value({
   size = "var(--t-value)",
   unitSize = "var(--t-small)",
   weight = 500,
+  lineHeight = 1.1,
 }) {
   const { num, unit } = splitValue(v, ind);
   const isPct = unit === "%";
   const missing = v == null || Number.isNaN(v);
 
   return (
-    <span style={{ whiteSpace: "nowrap", color: missing ? "var(--neutral-grey)" : "var(--ink)" }}>
+    /* Line-height is tight on purpose. Kanit's default line box for a 22px
+       figure is 33px — eleven pixels of it below the digits — and that slack
+       reads as a gap between the number and whatever is captioned under it. */
+    <span style={{ whiteSpace: "nowrap", lineHeight,
+                   color: missing ? "var(--neutral-grey)" : "var(--ink)" }}>
       <span className="tabular" style={{ fontSize: size, fontWeight: weight }}>{num}</span>
       {unit && (isPct ? (
         // Same size, same weight, same tabular face — closed up against the
