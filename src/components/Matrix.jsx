@@ -3,7 +3,7 @@ import KpiGlyph from "./KpiGlyph.jsx";
 import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import Tooltip, { IndicatorCard } from "./Tooltip.jsx";
-import { formatValue } from "../lib/format.js";
+import { formatValue, splitValue } from "../lib/format.js";
 import { score, delta, referenceFor, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
@@ -68,7 +68,7 @@ export default function Matrix({
             <th style={{ ...th, textAlign: "left", minWidth: 210, paddingLeft: 4 }}>
               {regionView ? "Region" : "Country"}
             </th>
-            <th style={{ ...th, textAlign: "right", minWidth: 138 }}>
+            <th style={{ ...th, textAlign: "right", minWidth: 178 }}>
               <Tooltip content={<IndicatorCard ind={focus} extra={<BenchmarkLine ind={focus} scale={scales[focus.id]} peers={peerNoun} />} />}>
                 <span style={{ borderBottom: "1.5px dotted var(--blue-maven)" }}>
                   {focus.label}
@@ -205,10 +205,23 @@ export default function Matrix({
                       />
                     }
                   >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9 }}>
-                    <span className="tabular"
-                          style={{ fontSize: "var(--t-value)", fontWeight: 500, color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
-                      {formatValue(rec?.v, focus)}
+                  {/* Number at value size, unit one step down, the pair kept on
+                      a single line. "110.7 per 1,000" set entirely at 22px is
+                      ~170px of text and wrapped inside a 138px column, which
+                      broke the number away from its unit — the one thing this
+                      column exists to keep together. */}
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "flex-end",
+                                gap: 9, whiteSpace: "nowrap" }}>
+                    <span style={{ color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
+                      <span className="tabular" style={{ fontSize: "var(--t-value)", fontWeight: 500 }}>
+                        {splitValue(rec?.v, focus).num}
+                      </span>
+                      {splitValue(rec?.v, focus).unit && (
+                        <span style={{ fontSize: "var(--t-small)", fontWeight: 400,
+                                       color: "var(--warm-grey)", marginLeft: 4 }}>
+                          {splitValue(rec?.v, focus).unit}
+                        </span>
+                      )}
                     </span>
                     <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={28} />
                   </div>
