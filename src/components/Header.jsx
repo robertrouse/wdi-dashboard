@@ -28,7 +28,10 @@ export default function Header({ actions }) {
           World Development Indicators
         </h1>
       </div>
-      {actions}
+      {/* Actions are wrapped rather than spread. `actions` is a fragment, so its
+          buttons would otherwise become direct flex children of the header and
+          space-between would strand the first one in the middle of the bar. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>{actions}</div>
     </header>
   );
 }

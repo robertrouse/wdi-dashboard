@@ -272,8 +272,8 @@ export default function App() {
               cursor: "pointer", fontFamily: "inherit",
             }}
           >
-            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
-              <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.4" />
               <path d="M6.1 6.1a1.95 1.95 0 1 1 2.3 2.5v1" fill="none" stroke="currentColor"
                     strokeWidth="1.5" strokeLinecap="round" />
               <circle cx="8" cy="11.6" r=".85" fill="currentColor" />
