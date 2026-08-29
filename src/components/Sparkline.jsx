@@ -177,6 +177,24 @@ export default function Sparkline({
   };
 
   const hp = hover ? points[hover.i] : null;
+
+  /* Years with no reading. The trend window only carries years that HAVE a
+     value, so a line drawn from 2015 to 2020 looks continuous while standing
+     for a five-year hole — literacy and homicides are survey-based and full of
+     them (150 of 2,946 trends here). The World Bank's own per-year footnotes
+     are not in either data path we pull from, but a missing year is something
+     the bundle can be asked directly, and it is the caveat that actually
+     changes how the segment should be read. */
+  const gapNote = (() => {
+    if (!hp) return null;
+    const i = hover.i;
+    const spans = [];
+    if (i > 0 && points[i][0] - points[i - 1][0] > 1) spans.push([points[i - 1][0] + 1, points[i][0] - 1]);
+    if (i < points.length - 1 && points[i + 1][0] - points[i][0] > 1) spans.push([points[i][0] + 1, points[i + 1][0] - 1]);
+    if (!spans.length) return null;
+    const span = ([a, z]) => (a === z ? `${a}` : `${a}–${z}`);
+    return `no reading ${spans.map(span).join(" or ")} — the line is drawn straight across`;
+  })();
   const hRef = hp ? (band ? null : refAt(hp[0])) : null;
   const hFav = hp ? favAt(hp[1], hRef, ind) : null;
   const fmt = (v) => (ind ? formatValue(v, ind) : String(v));
@@ -282,6 +300,12 @@ export default function Sparkline({
               )}
             </div>
           ) : null}
+          {gapNote && (
+            <div style={{ fontSize: "13.5px", color: "var(--blaze)", marginTop: 4,
+                          maxWidth: 260, whiteSpace: "normal", lineHeight: 1.3 }}>
+              {gapNote}
+            </div>
+          )}
         </div>
       )}
     </>
