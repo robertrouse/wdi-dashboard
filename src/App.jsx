@@ -55,7 +55,7 @@ export default function App() {
   const [selected, setSelected] = useState([]);
   const [activePreset, setActivePreset] = useState(DEFAULT_PRESET);
   const [activeIndicatorIds, setActiveIndicatorIds] = useState(null);
-  const [focusId, setFocusId] = useState("gdppc");
+  const [focusId, setFocusId] = useState("gdp");
   const [onlyWeak, setOnlyWeak] = useState(false);
   const [detailRowId, setDetailRowId] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
