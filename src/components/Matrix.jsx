@@ -63,7 +63,7 @@ export default function Matrix({
                 </span>
               )}
             </th>
-            <th style={{ ...th, textAlign: "right", minWidth: 104 }}>Change</th>
+            <th style={{ ...th, textAlign: "right", minWidth: 148 }}>Change</th>
             <th style={{ ...th, textAlign: "left", minWidth: 178, paddingLeft: 18 }}>
               {bundle.yearSpan[0]}–{bundle.yearSpan[1]} trend
             </th>

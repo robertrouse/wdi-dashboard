@@ -18,10 +18,14 @@
    incompatible units legible. Percent change is that normalisation.
    -------------------------------------------------------------------------- */
 
-export default function DeltaArrow({ d, ind, showLabel = true, size = 15 }) {
+/* Sized to sit level with the KPI value it belongs to. The change is not
+   secondary information — "how did it move" is half of what this dashboard is
+   asked, so it is set at the same weight as "where is it now" rather than
+   whispered underneath. */
+export default function DeltaArrow({ d, ind, showLabel = true, size = 20, fontSize = "var(--t-value)" }) {
   // No previous reading at all is a different statement from "it did not move".
   if (!d || d.abs == null) {
-    return <span style={{ color: "var(--neutral-grey)", fontSize: "var(--t-small)" }}>—</span>;
+    return <span style={{ color: "var(--neutral-grey)", fontSize }}>—</span>;
   }
 
   const color =
@@ -64,14 +68,16 @@ export default function DeltaArrow({ d, ind, showLabel = true, size = 15 }) {
   // which is how "−0.0%" slipped through once the unit moved to the end.
   if (shown === 0) {
     return (
-      <span style={{ color: "var(--warm-grey)", fontSize: "var(--t-small)" }}>
+      // Set a step down: "no change" is a sentence, not a number, and at full
+      // value size it shouted louder than the movements around it.
+      <span style={{ color: "var(--warm-grey)", fontSize: "var(--t-small)", whiteSpace: "nowrap" }}>
         no change
       </span>
     );
   }
 
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color, fontWeight: 500, whiteSpace: "nowrap" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color, fontWeight: 500, whiteSpace: "nowrap" }}>
       <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" style={{ flexShrink: 0 }}>
         <path
           d={d.dir > 0 ? "M8 2.5 L13.5 9.5 L9.6 9.5 L9.6 13.5 L6.4 13.5 L6.4 9.5 L2.5 9.5 Z"
@@ -79,7 +85,7 @@ export default function DeltaArrow({ d, ind, showLabel = true, size = 15 }) {
           fill={color}
         />
       </svg>
-      {showLabel && <span className="tabular" style={{ fontSize: "var(--t-small)" }}>{text}</span>}
+      {showLabel && <span className="tabular" style={{ fontSize }}>{text}</span>}
     </span>
   );
 }

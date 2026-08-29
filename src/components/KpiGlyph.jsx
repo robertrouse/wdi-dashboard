@@ -18,6 +18,7 @@ const FILL = {
   [PERF.STRONG]:  "var(--blue-maven)",
   [PERF.MID]:     "var(--blaze)",
   [PERF.WEAK]:    "var(--red-cerise)",
+  // Deliberately uncoloured — position without a verdict. See the note below.
   [PERF.NEUTRAL]: "var(--warm-grey)",
   [PERF.NONE]:    "transparent",
 };
@@ -37,22 +38,21 @@ export default function KpiGlyph({ perf, deviation = 0, size = 30, title }) {
     );
   }
 
-  // Neutral indicators (population, urbanisation) get a plain dot: there is no
-  // "good" direction to encode, and pretending otherwise would mislead.
-  if (perf === PERF.NEUTRAL) {
-    return (
-      <svg width={size} height={size} role="img" aria-label={title || "no target"}>
-        {title && <title>{title}</title>}
-        <circle cx={cx} cy={cy} r={r} fill="var(--cool-grey)" stroke="var(--warm-grey)" strokeWidth="1.25" />
-        <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke="var(--warm-grey)" strokeWidth="1.25" />
-      </svg>
-    );
-  }
+  /* Neutral indicators (population, urbanisation, net migration) are filled
+     exactly like the rest — the fill still answers "is this above or below the
+     benchmark, and by how much", which is a fact regardless of direction. What
+     they do NOT get is colour: cerise would say "bad" and maven would say
+     "good" about a country simply being more populous than its peers, and
+     neither is a judgement this data supports. Grey states the position and
+     withholds the verdict, which is the honest reading. */
 
   const mag = Math.min(1, Math.abs(deviation));
   const h = mag * r;                       // height of the filled segment
   const above = deviation >= 0;
   const clipId = `clip-${perf}-${Math.round(deviation * 1000)}-${size}`;
+  // Neutral fills read as a lighter wash so a grey circle never competes for
+  // attention with a cerise one on the same row.
+  const fillOpacity = perf === PERF.NEUTRAL ? 0.55 : 1;
 
   return (
     <svg width={size} height={size} role="img" aria-label={title || perf}>
@@ -63,7 +63,7 @@ export default function KpiGlyph({ perf, deviation = 0, size = 30, title }) {
         </clipPath>
       </defs>
       <circle cx={cx} cy={cy} r={r} fill="var(--white)" stroke={FILL[perf]} strokeWidth="2" />
-      <circle cx={cx} cy={cy} r={r} fill={FILL[perf]} clipPath={`url(#${clipId})`} />
+      <circle cx={cx} cy={cy} r={r} fill={FILL[perf]} fillOpacity={fillOpacity} clipPath={`url(#${clipId})`} />
       <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke={FILL[perf]} strokeWidth="1.5" opacity="0.85" />
     </svg>
   );

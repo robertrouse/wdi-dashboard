@@ -4,43 +4,64 @@ import Legend from "./components/Legend.jsx";
 import Matrix from "./components/Matrix.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
+import QuickStart, { hasSeenQuickStart } from "./components/QuickStart.jsx";
 import { buildScalesFromRows, regionRecord, worldRecord, score, PERF } from "./lib/kpi.js";
 
-/* Default country set: three to five per World Bank region, chosen for regional
-   balance rather than economic weight, so the region grouping actually carries
-   information instead of restating the GDP ranking. */
-const DEFAULT_SET = [
-  "USA", "CAN",                                  // North America
-  "CHN", "JPN", "IDN", "AUS",                    // East Asia & Pacific
-  "DEU", "GBR", "FRA", "RUS", "TUR",             // Europe & Central Asia
-  "BRA", "MEX", "ARG", "COL",                    // Latin America & Caribbean
-  "SAU", "ARE", "EGY", "ISR",                    // Middle East & North Africa
-  "IND", "PAK", "BGD",                           // South Asia
-  "NGA", "ZAF", "KEN", "ETH",                    // Sub-Saharan Africa
+/* Country presets.
+
+   Two shapes, and the difference between them is the point. G20 is a list
+   somebody else drew — it is the set a business audience already argues about,
+   and it is deliberately lopsided (six European members, one African). "Top 5
+   per region" is drawn from the data itself and is balanced by construction,
+   so the region grouping carries information rather than restating the GDP
+   ranking. Switching between them is the fastest way to see that a benchmark
+   is a property of the comparison set, not of the world: every glyph on screen
+   re-scores when the set changes. */
+
+const G20 = [
+  "ARG", "AUS", "BRA", "CAN", "CHN", "FRA", "DEU", "IND", "IDN", "ITA",
+  "JPN", "MEX", "RUS", "SAU", "ZAF", "KOR", "TUR", "GBR", "USA",
 ];
+
+const PER_REGION = 5;
 
 const PRESETS = [
-  { id: "balanced", label: "Balanced 26", hint: "Three to five countries per region" },
-  { id: "g20", label: "G20", hint: "G20 member states" },
-  { id: "gdp20", label: "Top 20 by GDP", hint: "Largest economies in the data" },
-  { id: "pop20", label: "Top 20 by population", hint: "Most populous countries" },
+  { id: "gdp5",  label: "Top 5 per region · GDP",        hint: `The ${PER_REGION} largest economies in each World Bank region` },
+  { id: "pop5",  label: "Top 5 per region · population", hint: `The ${PER_REGION} most populous countries in each World Bank region` },
+  { id: "g20",   label: "G20",                           hint: "G20 member states" },
 ];
 
-const G20 = ["ARG","AUS","BRA","CAN","CHN","FRA","DEU","IND","IDN","ITA","JPN","MEX","RUS","SAU","ZAF","KOR","TUR","GBR","USA"];
+const DEFAULT_PRESET = "gdp5";
+
+/** The top N countries per region on `key`, flattened. */
+function topPerRegion(bundle, key, n = PER_REGION) {
+  const byRegion = new Map();
+  for (const c of bundle.countries) {
+    const v = bundle.series[c.c]?.[key]?.v;
+    if (v == null) continue;
+    if (!byRegion.has(c.r)) byRegion.set(c.r, []);
+    byRegion.get(c.r).push({ c: c.c, v });
+  }
+  return [...byRegion.values()].flatMap((list) =>
+    list.sort((a, b) => b.v - a.v).slice(0, n).map((x) => x.c)
+  );
+}
 
 export default function App() {
   const [bundle, setBundle] = useState(null);
   const [err, setErr] = useState(null);
 
   const [view, setView] = useState("country");
-  const [selected, setSelected] = useState(DEFAULT_SET);
-  const [activePreset, setActivePreset] = useState("balanced");
-  const [activeRegions, setActiveRegions] = useState(null);   // null == all
+  const [selected, setSelected] = useState([]);
+  const [activePreset, setActivePreset] = useState(DEFAULT_PRESET);
   const [activeIndicatorIds, setActiveIndicatorIds] = useState(null);
   const [focusId, setFocusId] = useState("gdppc");
   const [onlyWeak, setOnlyWeak] = useState(false);
   const [detailRowId, setDetailRowId] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // Read once at mount rather than on every render — localStorage access can
+  // throw, and the guard lives in the component that owns the key.
+  const [quickStart, setQuickStart] = useState(() => !hasSeenQuickStart());
 
   useEffect(() => {
     // no-cache forces a revalidation against the server's ETag rather than
@@ -50,7 +71,12 @@ export default function App() {
     // the CDN max-age lasts.
     fetch(`${import.meta.env.BASE_URL}data/wdi.json`, { cache: "no-cache" })
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(setBundle)
+      .then((b) => {
+        setBundle(b);
+        // The default set is derived from the data, so it cannot be a static
+        // constant — it is seeded once the bundle arrives.
+        setSelected(topPerRegion(b, "gdp"));
+      })
       .catch((e) => setErr(e.message));
   }, []);
 
@@ -59,12 +85,13 @@ export default function App() {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== "Escape") return;
+      if (quickStart) return;            // owns its own Escape handler
       if (detailRowId) setDetailRowId(null);
       else if (filtersOpen) setFiltersOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [detailRowId, filtersOpen]);
+  }, [detailRowId, filtersOpen, quickStart]);
 
   const indicators = bundle?.indicators ?? [];
   const activeInds = useMemo(
@@ -78,12 +105,10 @@ export default function App() {
     [bundle]
   );
 
-  const visibleCodes = useMemo(() => {
-    if (!bundle) return [];
-    const inSet = selected.filter((c) => byCode[c]);
-    const regionsOn = activeRegions ?? bundle.regions.map((_, i) => i);
-    return inSet.filter((c) => regionsOn.includes(byCode[c].r));
-  }, [bundle, selected, activeRegions, byCode]);
+  const visibleCodes = useMemo(
+    () => (bundle ? selected.filter((c) => byCode[c]) : []),
+    [bundle, selected, byCode]
+  );
 
   /* Rows are built in three passes so the scales can be derived from the rows
      themselves rather than from the raw data:
@@ -95,8 +120,8 @@ export default function App() {
     if (!bundle || !focus) return [];
 
     if (view === "region") {
-      const regionsOn = activeRegions ?? bundle.regions.map((_, i) => i);
-      return regionsOn
+      return bundle.regions
+        .map((_, i) => i)
         .map((ri) => {
           // The country filter still decides which regions are worth showing,
           // but it no longer decides what they say: the row reports the World
@@ -127,7 +152,7 @@ export default function App() {
       region: byCode[c].r,
       get: (id) => bundle.series[c]?.[id] ?? null,
     }));
-  }, [bundle, view, visibleCodes, byCode, focus, indicators, activeRegions]);
+  }, [bundle, view, visibleCodes, byCode, focus, indicators]);
 
   const scales = useMemo(
     () => buildScalesFromRows(dataRows, indicators),
@@ -218,15 +243,8 @@ export default function App() {
 
   function applyPreset(id) {
     setActivePreset(id);
-    if (id === "balanced") return setSelected(DEFAULT_SET);
     if (id === "g20") return setSelected(G20.filter((c) => byCode[c]));
-    const key = id === "gdp20" ? "gdp" : "pop";
-    const ranked = (bundle?.countries ?? [])
-      .map((c) => ({ c: c.c, v: bundle.series[c.c]?.[key]?.v ?? -Infinity }))
-      .sort((a, b) => b.v - a.v)
-      .slice(0, 20)
-      .map((x) => x.c);
-    setSelected(ranked);
+    setSelected(topPerRegion(bundle, id === "pop5" ? "pop" : "gdp"));
   }
 
   if (err) return <Fatal msg={`Could not load the data bundle (${err}).`} />;
@@ -236,7 +254,6 @@ export default function App() {
   // How many controls are away from their default — shown on the button so a
   // collapsed panel cannot hide the fact that the view is filtered.
   const activeFilterCount =
-    (activeRegions && activeRegions.length < bundle.regions.length ? 1 : 0) +
     (activeIndicatorIds && activeIndicatorIds.length < indicators.length ? 1 : 0) +
     (onlyWeak ? 1 : 0);
 
@@ -244,6 +261,25 @@ export default function App() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <Header
         actions={
+          <>
+          <button
+            onClick={() => setQuickStart(true)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              background: "transparent", color: "var(--blue-ice)",
+              border: "1.5px solid transparent", borderRadius: 8,
+              padding: "6px 10px", fontSize: "15px", fontWeight: 400,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M6.1 6.1a1.95 1.95 0 1 1 2.3 2.5v1" fill="none" stroke="currentColor"
+                    strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="8" cy="11.6" r=".85" fill="currentColor" />
+            </svg>
+            How to read
+          </button>
           <button
             onClick={() => setFiltersOpen(true)}
             aria-expanded={filtersOpen}
@@ -267,6 +303,7 @@ export default function App() {
               }}>{activeFilterCount}</span>
             )}
           </button>
+          </>
         }
       />
 
@@ -308,6 +345,10 @@ export default function App() {
         />
       )}
 
+      {quickStart && (
+        <QuickStart onClose={() => { QuickStart.markSeen(); setQuickStart(false); }} />
+      )}
+
       {filtersOpen && (
         <div
           onClick={() => setFiltersOpen(false)}
@@ -317,12 +358,6 @@ export default function App() {
             bundle={bundle}
             onClose={() => setFiltersOpen(false)}
             view={view} setView={(v) => { setView(v); setDetailRowId(null); }}
-            regions={bundle.regions}
-            activeRegions={activeRegions ?? bundle.regions.map((_, i) => i)}
-            toggleRegion={(i) => {
-              const cur = activeRegions ?? bundle.regions.map((_, j) => j);
-              setActiveRegions(cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort());
-            }}
             indicators={indicators}
             activeIndicatorIds={activeIndicatorIds ?? indicators.map((i) => i.id)}
             toggleIndicator={(id) => {
@@ -345,62 +380,30 @@ export default function App() {
 
 function Method({ bundle }) {
   return (
-    <section style={{ marginTop: 44, maxWidth: 900, fontSize: "16px", lineHeight: 1.6, color: "var(--ink-soft)" }}>
-      <h3 style={{ fontSize: "21px", marginBottom: 10 }}>How to read this</h3>
+    <section style={{ marginTop: 40, maxWidth: 860, fontSize: "16px", lineHeight: 1.6, color: "var(--ink-soft)" }}>
+      <h3 style={{ fontSize: "21px", marginBottom: 10 }}>Notes on reading this</h3>
       <p style={{ marginTop: 0 }}>
-        The number in each row stays in its own units — dollars, percent, years, deaths per
-        thousand. The <strong>glyph</strong> beside it does not: it reports where that value
-        sits relative to the benchmark, on a scale every indicator shares. That is what makes
-        a $29&nbsp;trillion economy and a 2.1% inflation rate comparable in the same glance.
+        Values stay in their own units; the <strong>glyph</strong> beside them does not — it
+        reports position against the benchmark on a scale every metric shares. Where a metric
+        can be judged better or worse, a <strong>sparkline's</strong> dotted line is that row's
+        benchmark and the trace is coloured by which side of it each year fell on. Sparklines
+        are self-scaled, so shape is comparable between rows but height never is.
       </p>
       <p>
-        Each <strong>sparkline</strong> is scaled to its own range, so height is never
-        comparable between rows — only shape is. Where a metric can be judged better or
-        worse, the dotted line is the peer benchmark for that row (a country against its
-        region, a region against the World, inflation against its target band), and the
-        trace is coloured by which side of it that year fell on. Hover any point for the
-        year, the value and the benchmark it is being read against.
-      </p>
-      <p>
-        Three metrics carry no dotted line. GDP, population and net migration aggregate by
-        summing their members, so a country is below its region's figure by definition and
-        the comparison has only one answer; urbanisation has no favourable direction to
-        colour. Those keep a plain self-scaled trace rather than a benchmark that would
-        mean nothing. Arrows point the way the number moved and are coloured by whether that
-        movement was good — falling under-5 mortality and rising life expectancy are both blue.
-      </p>
-      <p>
-        <strong>Change</strong> is a percentage change for every metric except those already
-        measured in percent, which report percentage <em>points</em> instead. A percent change
-        of a percent is a well-known way to mislead: unemployment moving from 4.0% to 4.4% is
-        not "up 10%". One rule for everything else is deliberate — a column mixing "+$520",
-        "+0.3 yrs" and "−1.2 per 1,000" cannot be read down the page.
-      </p>
-      <p>
-        Rows are ordered by <strong>GDP, descending</strong> — regions, and countries within
-        each region — rather than by whichever metric is in focus. Ranking by the focus metric
-        reshuffled the whole table on every switch, which makes two metrics impossible to
-        compare by scanning the same row position. Click any metric name across the top to make
-        it the focus metric; the order does not move.
-      </p>
-      <p>
-        Every section opens with its <strong>regional aggregate</strong> — the Bank's published
-        subtotal for that region, and in region view the World. It is the line the rows beneath
-        it are being read against. It is shown but deliberately excluded from the benchmark
-        maths: letting a region's total into the median of its own members would move the very
-        line the row exists to illustrate.
+        <strong>Change</strong> is a percentage change, except for metrics already measured in
+        percent, which report percentage <em>points</em> — unemployment moving 4.0% to 4.4% is
+        not "up 10%". Rows are ordered by <strong>GDP descending</strong> rather than by the
+        focus metric, so switching metrics never reshuffles the table and two metrics can be
+        compared by scanning the same row. Each section opens with the Bank's published
+        <strong> regional aggregate</strong>, shown for reference but excluded from the
+        benchmark maths — letting a region's total into the median of its own members would
+        move the very line it exists to illustrate.
       </p>
       <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", borderTop: "1px solid var(--rule)", paddingTop: 14 }}>
         Source: {bundle.source}. Bundle generated {bundle.generated}. Values are each country's
-        most recent available observation, which is not always the same year — the year is
-        printed beneath every value for that reason.
-      </p>
-      <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", marginTop: -6 }}>
-        Regions are the World Bank's own classification as shipped in the WDI
-        metadata. That grouping was revised in 2024 — Pakistan and Afghanistan
-        moved out of South Asia into the Middle East, North Africa, Afghanistan
-        &amp; Pakistan group, which is why South Asia looks smaller here than it
-        once did.
+        most recent available observation — not always the same year, which is why the year is
+        printed beneath every value. Regions follow the World Bank's own classification, revised
+        in 2024 when Pakistan and Afghanistan moved out of South Asia.
       </p>
     </section>
   );
@@ -428,7 +431,7 @@ function Empty({ onlyWeak }) {
         <div style={{ fontSize: "19px", marginBottom: 6 }}>Nothing to show</div>
         {onlyWeak
           ? "No selected row is below the benchmark on this metric — which is itself an answer."
-          : "Add countries or re-enable a region in the panel on the right."}
+          : "Add countries, or pick a preset, in Filters."}
       </div>
     </Center>
   );

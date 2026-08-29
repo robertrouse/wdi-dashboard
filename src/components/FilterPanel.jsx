@@ -5,7 +5,14 @@ import { useMemo, useState } from "react";
 
    Carries the same controls as the right-hand filter column of the original
    dashboard — view level, group membership, metric selection, and a "show only
-   the ones in trouble" escape hatch. One structure serving many questions is
+   the ones in trouble" escape hatch.
+
+   There is deliberately no "regions shown" control. Region is how the table is
+   GROUPED, not a facet to switch off, and hiding a region silently moved every
+   benchmark on screen — the peer median is computed from the visible rows — so
+   a control that read as "show less" quietly rescored the whole view. Choosing
+   the country set does that job honestly, because changing the set is visibly
+   changing the comparison. One structure serving many questions is
    the whole argument of the chapter: every control here changes what the same
    components render rather than switching to a different sheet.
 
@@ -57,7 +64,7 @@ function Radio({ name, value, checked, onChange, label, hint }) {
 }
 
 export default function FilterPanel({
-  bundle, view, setView, regions, activeRegions, toggleRegion,
+  bundle, view, setView,
   indicators, activeIndicatorIds, toggleIndicator, focusId, setFocus,
   countries, selected, setSelected, onlyWeak, setOnlyWeak, presets, applyPreset, activePreset,
   onClose,
@@ -154,17 +161,6 @@ export default function FilterPanel({
             <button onClick={() => setSelected([])} style={{ ...S.btn, marginLeft: 8, padding: "3px 8px" }}>clear</button>
           )}
         </div>
-      </div>
-
-      <div style={S.section}>
-        <span style={S.h}>Regions shown</span>
-        {regions.map((r, i) => (
-          <label key={r} style={{ ...S.radioRow, padding: "5px 0" }}>
-            <input type="checkbox" checked={activeRegions.includes(i)} onChange={() => toggleRegion(i)}
-                   style={{ accentColor: "var(--blue-maven)", width: 17, height: 17, flexShrink: 0 }} />
-            <span style={{ fontSize: "15.5px" }}>{r}</span>
-          </label>
-        ))}
       </div>
 
       <div style={S.section}>

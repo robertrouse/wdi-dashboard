@@ -5,3 +5,6 @@ dist/
 data/_*.json
 data/_*.csv
 data/candidates.txt
+
+# scratch build output used for headless QA
+.qa-dist/

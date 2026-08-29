@@ -1,4 +1,5 @@
 import { useState, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 
 /* --------------------------------------------------------------------------
    Hover card.
@@ -10,7 +11,20 @@ import { useState, useRef, useLayoutEffect } from "react";
 
    Rendered wide with body-size type — a definition set in 11px is a definition
    nobody reads.
+
+   PORTALLED TO document.body, and that is not optional. The card is
+   position:fixed, but a fixed element is still confined to the nearest
+   ancestor that creates a stacking context, and the matrix's sticky <thead>
+   (position:sticky, z-index:3) is exactly that. Rendered in place, the whole
+   tooltip painted at the header's z-index of 3 no matter what z-index it
+   carried itself, so the rows below and the filter drawer covered it. A
+   portal moves it out of that context entirely; the z-index below then means
+   what it says.
    -------------------------------------------------------------------------- */
+
+// Above the filter drawer (80) and the detail modal (90): a tooltip is the
+// topmost thing on screen whenever it is open, including inside those.
+const TOOLTIP_Z = 200;
 
 export default function Tooltip({ children, content, width = 400, cursor = "help" }) {
   const [open, setOpen] = useState(false);
@@ -40,7 +54,7 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
       >
         {children}
       </span>
-      {open && content && (
+      {open && content && createPortal(
         <div
           role="tooltip"
           style={{
@@ -49,7 +63,7 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
             top: pos.place === "below" ? pos.top : undefined,
             bottom: pos.place === "above" ? window.innerHeight - pos.top : undefined,
             width,
-            zIndex: 60,
+            zIndex: TOOLTIP_Z,
             background: "var(--white)",
             color: "var(--ink)",
             border: "1px solid var(--rule-strong)",
@@ -63,7 +77,8 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
           }}
         >
           {content}
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

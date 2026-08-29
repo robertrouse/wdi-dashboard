@@ -117,7 +117,7 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                   key={ind.id}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "minmax(150px,1fr) 168px 104px 190px",
+                    gridTemplateColumns: "minmax(150px,1fr) 168px 148px 190px",
                     gap: 16, alignItems: "center",
                     padding: "9px 0", borderBottom: "1px solid var(--rule)",
                   }}
