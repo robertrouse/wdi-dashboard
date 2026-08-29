@@ -176,6 +176,12 @@ background colour on purpose: on the original they mask the tentacle lines
 running behind them, so an `eyeFill` that does not match its background will
 look broken. Stroke follows `currentColor`.
 
+The favicon is the same mark: `public/favicon.svg` (plus `favicon-32.png` and
+`apple-touch-icon.png` rendered from it), white octopus on a Blue Raven rounded
+square. Its stroke is thickened to 15 rather than the brand's 7 — at favicon
+size a 7-unit stroke in a 522-unit box is a fifth of a pixel and disappears
+entirely. The geometry is untouched; only the stroke weight differs.
+
 To re-extract it if the brand book is ever revised, the pictogram is
 `page.get_drawings()[3:8]` on page 13 (0-indexed) of `../Action Brand Book
 (1).pdf`; build the SVG from those items rather than `get_svg_image()`, which
