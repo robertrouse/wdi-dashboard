@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import KpiGlyph from "./KpiGlyph.jsx";
 import { PERF } from "../lib/kpi.js";
@@ -59,11 +59,26 @@ const STEPS = [
 ];
 
 export default function QuickStart({ onClose }) {
+  const dialogRef = useRef(null);
+
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  /* Open at the top, always.
+     The dismiss button used to carry autoFocus, and focusing an element scrolls
+     it into view — it sits at the BOTTOM of a panel that can overflow, so on a
+     short viewport the modal opened already scrolled past its own heading. The
+     dialog takes focus instead, with preventScroll, which keeps the keyboard
+     entry point inside the modal without moving it. */
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    el.focus({ preventScroll: true });
+  }, []);
 
   return createPortal(
     <div
@@ -75,13 +90,15 @@ export default function QuickStart({ onClose }) {
       }}
     >
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="qs-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "var(--white)", borderRadius: 14, maxWidth: 620, width: "100%",
-          maxHeight: "88vh", overflowY: "auto",
+          maxHeight: "88vh", overflowY: "auto", outline: "none",
           boxShadow: "0 24px 70px rgba(10,16,68,.35)",
         }}
       >
@@ -142,7 +159,6 @@ export default function QuickStart({ onClose }) {
         <div style={{ padding: "4px 28px 24px", display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
-            autoFocus
             style={{
               background: "var(--blue-maven)", color: "var(--white)", border: "none",
               borderRadius: 9, padding: "12px 26px", fontSize: "17px", fontWeight: 500,

@@ -220,17 +220,26 @@ export default function Matrix({
                       ~170px of text and wrapped inside a 138px column, which
                       broke the number away from its unit — the one thing this
                       column exists to keep together. */}
-                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "flex-end",
+                  {/* The year belongs under the NUMBER, not under the glyph.
+                      With the two stacked in their own block the glyph can be
+                      centred against them, so its centreline and the number's
+                      sit on the same axis instead of the glyph riding high
+                      above a caption that was never about it. Same arrangement
+                      the detail modal already uses. */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end",
                                 gap: 9, whiteSpace: "nowrap" }}>
-                    <Value v={rec?.v} ind={focus} />
+                    <div style={{ textAlign: "right" }}>
+                      <Value v={rec?.v} ind={focus} />
+                      {rec && (
+                        <div style={{ fontSize: "13px", lineHeight: 1.2, marginTop: 1,
+                                      color: stale ? "var(--blaze)" : "var(--warm-grey)" }}>
+                          {rec.y}{stale ? " · older reading" : ""}
+                        </div>
+                      )}
+                    </div>
                     <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={28} />
                   </div>
                   </Tooltip>
-                  {rec && (
-                    <span style={{ fontSize: "13px", color: stale ? "var(--blaze)" : "var(--warm-grey)", display: "block", marginTop: 1 }}>
-                      {rec.y}{stale ? " · older reading" : ""}
-                    </span>
-                  )}
                 </td>
 
                 <td style={{ ...td, textAlign: "right" }}>
