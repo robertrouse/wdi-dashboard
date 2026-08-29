@@ -399,6 +399,14 @@ function Method({ bundle }) {
         benchmark maths — letting a region's total into the median of its own members would
         move the very line it exists to illustrate.
       </p>
+      <p>
+        <strong>Inflation is scored against a target band</strong>, not against its peers, so
+        it reads red on <em>both</em> sides: 0.1% and 3.2% are both misses — one too cold, one
+        too hot — and they score identically. Two countries moving in opposite directions can
+        therefore both be red. Hover the value and it names which side of the band it fell on.
+        A hairline separates the metric columns wherever the category changes; each column's
+        hover card opens with the category it belongs to.
+      </p>
       <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", borderTop: "1px solid var(--rule)", paddingTop: 14 }}>
         Source: {bundle.source}. Bundle generated {bundle.generated}. Values are each country's
         most recent available observation — not always the same year, which is why the year is

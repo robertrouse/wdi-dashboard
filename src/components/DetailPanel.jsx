@@ -159,7 +159,6 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                       ind={ind}
                       width={182} height={38} showDots
                       color={PERF_COLOR[sc.perf]}
-                      dotColor={dl.favorable === false ? "var(--red-cerise)" : dl.favorable === true ? "var(--blue-maven)" : "var(--warm-grey)"}
                     />
                     {slope != null && (
                       <div style={{ fontSize: "13px", color: "var(--warm-grey)", marginTop: 2 }}>

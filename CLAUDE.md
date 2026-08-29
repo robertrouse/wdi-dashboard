@@ -127,7 +127,23 @@ Source material lives in the parent folder `../`:
     sorts last. Clicking a metric's column header sets the focus metric, and the
     order stays put — that is the point.
 
-14. **There is exactly ONE scroll container: `<main>`, in both axes.** The
+14. **One mark, one meaning — the sparkline end dot follows its trace.** It was
+    once coloured by whether the last CHANGE was favourable while the line it
+    sits on is coloured by which side of the BENCHMARK the row was on. Two
+    meanings on one palette: a row below its benchmark drew a cerise line
+    ending in a maven dot, and the marks read as contradicting each other.
+    Direction of change is the Change column's job. Do not re-add `dotColor`.
+
+15. **Band metrics are red on BOTH sides, and the copy must say which.**
+    Inflation scores by distance outside the target band, so 0.1% and 3.2%
+    score identically and both draw a cerise glyph filled below the midline.
+    That is correct — deflation and overheating are both misses — but it looks
+    like a bug until the reader is told which side, so `perfWord()` names it.
+    The audit script confirming the symmetry is worth re-running after any
+    change to `score()`: equal distance either side of the band must produce
+    equal goodness.
+
+16. **There is exactly ONE scroll container: `<main>`, in both axes.** The
     matrix used to own a `overflow-x: auto` wrapper, but an element with
     `overflow-x: auto` is a scroll box in its own right, and `position: sticky`
     inside one sticks to *that* box — which scrolls away with the page — so the
@@ -143,7 +159,7 @@ Source material lives in the parent folder `../`:
       `...th` — an explicit `undefined` deletes the inherited background, which
       is exactly how the focus-column highlight broke it once.
 
-15. **A sparkline's dotted reference and its colours are ONE decision.** The
+17. **A sparkline's dotted reference and its colours are ONE decision.** The
    line a reader sees must be the line the colours are measured from. The rules
    live in `referenceFor()` in `src/lib/kpi.js`, and each exclusion was measured
    rather than guessed:

@@ -118,7 +118,6 @@ export default function Sparkline({
   width = 168,
   height = 40,
   color = "var(--warm-grey)",
-  dotColor,
   showDots = false,
 }) {
   const gid = useId();
@@ -156,6 +155,8 @@ export default function Sparkline({
   const path = (pts) => pts.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
 
   const runs = colourRuns(points, refAt, ind, !!(band || refPts));
+  const lastRun = runs[runs.length - 1];
+  const endColor = lastRun && lastRun.cls != null ? FAV_COLOR[lastRun.cls] : color;
   const area = `${path(points)} L${sx(x1).toFixed(1)},${height - pad} L${sx(x0).toFixed(1)},${height - pad} Z`;
   const last = points[points.length - 1];
 
@@ -227,8 +228,14 @@ export default function Sparkline({
           <circle key={i} cx={sx(p[0])} cy={sy(p[1])} r="2.25" fill={color} opacity="0.55" />
         ))}
 
+        {/* The latest reading, in the colour of the segment it ends. It used to
+            be coloured by whether the last CHANGE was favourable, which put a
+            second meaning on the same palette: a row sitting below its
+            benchmark drew a cerise line finishing in a maven dot, and the two
+            marks appeared to contradict each other. Direction of change is the
+            Change column's job. */}
         <circle cx={sx(last[0])} cy={sy(last[1])} r="4"
-                fill={dotColor || color} stroke="var(--white)" strokeWidth="1.75" />
+                fill={endColor} stroke="var(--white)" strokeWidth="1.75" />
 
         {hp && (
           <>

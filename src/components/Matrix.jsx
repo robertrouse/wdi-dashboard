@@ -23,9 +23,22 @@ const PERF_COLOR = {
   [PERF.NONE]: "var(--neutral-grey)",
 };
 
-function perfWord(perf, ind, scale) {
+function perfWord(perf, ind, scale, value) {
   if (perf === PERF.NONE) return "No recent data";
   if (perf === PERF.NEUTRAL) return "No favorable direction — shown for context";
+
+  /* A band metric is off target on BOTH sides, so 0.1% and 3.2% inflation score
+     the same and draw the same cerise glyph. That is correct — deflation and
+     overheating are both misses — but "clearly worse than the target" alone
+     leaves the reader to work out which way, and two rows moving in opposite
+     directions both turning red looks like a bug until you do. Name the side. */
+  if (ind.direction === "band" && ind.targetBand && value != null) {
+    const [lo, hi] = ind.targetBand;
+    const band = `${lo}–${hi}${ind.suffix ? " " + ind.suffix : ""}`;
+    if (value >= lo && value <= hi) return `On target · within ${band}`;
+    return value < lo ? `Below the ${band} target band` : `Above the ${band} target band`;
+  }
+
   const bm = scale?.benchmarkKind === "target" ? "the target" : "the peer median";
   return perf === PERF.STRONG ? `Clearly better than ${bm}`
        : perf === PERF.MID ? `Close to ${bm}`
@@ -38,6 +51,14 @@ export default function Matrix({
   const glyphInds = indicators;
   const regionView = rows.some((r) => r.kind === "region");
   const peerNoun = regionView ? "regions" : "countries";
+
+  /* A hairline where the category changes — Economy, People, Health & Education
+     and so on. The glossary already orders the metrics by group, so the blocks
+     are contiguous and this only makes visible a structure that was already
+     there. No labels: at 44px a column is too narrow to name a category, and
+     the group is already the first line of every header's hover card. */
+  const startsGroup = (i) => i > 0 && glyphInds[i].group !== glyphInds[i - 1].group;
+  const GROUP_RULE = "1px solid var(--cool-grey)";
 
   return (
     <div style={{ paddingBottom: 8 }}>
@@ -68,7 +89,7 @@ export default function Matrix({
             <th style={{ ...th, textAlign: "left", minWidth: 178, paddingLeft: 18 }}>
               {bundle.yearSpan[0]}–{bundle.yearSpan[1]} trend
             </th>
-            {glyphInds.map((ind) => {
+            {glyphInds.map((ind, gi) => {
               const isFocus = ind.id === focus.id;
               return (
                 <th
@@ -90,6 +111,12 @@ export default function Matrix({
                     // tint is rgba(70,85,228,.07) pre-composited on the page
                     // background, since a translucent tint would do the same.
                     background: isFocus ? "#E8EFFD" : "var(--background)",
+                    // A border on a sticky cell does not travel with it under
+                    // border-collapse, so the group rule is a shadow here and a
+                    // real border on the body cells below.
+                    boxShadow: startsGroup(gi)
+                      ? "inset 1px 0 0 var(--cool-grey), inset 0 -2px 0 var(--blue-raven)"
+                      : th.boxShadow,
                   }}
                 >
                   <Tooltip
@@ -224,15 +251,15 @@ export default function Matrix({
                     reference={referenceFor(bundle, row, focus)}
                     ind={focus}
                     color={PERF_COLOR[sc.perf === PERF.NONE ? PERF.NONE : sc.perf]}
-                    dotColor={dl.favorable === false ? "var(--red-cerise)" : dl.favorable === true ? "var(--blue-maven)" : "var(--warm-grey)"}
                   />
                 </td>
 
-                {glyphInds.map((ind) => {
+                {glyphInds.map((ind, gi) => {
                   const r2 = row.get(ind.id);
                   const s2 = score(r2, ind, scales[ind.id]);
                   return (
-                    <td key={ind.id} style={{ ...td, textAlign: "center", padding: "9px 3px" }}>
+                    <td key={ind.id} style={{ ...td, textAlign: "center", padding: "9px 3px",
+                                              borderLeft: startsGroup(gi) ? GROUP_RULE : undefined }}>
                       <Tooltip
                         width={300}
                         content={
@@ -298,7 +325,7 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
       </div>
 
       <div style={{ fontSize: "14.5px", marginTop: 3, color: PERF_COLOR[sc.perf] }}>
-        {perfWord(sc.perf, ind, scale)}
+        {perfWord(sc.perf, ind, scale, rec?.v)}
         {scale?.benchmark != null && sc.perf !== PERF.NONE && (
           <span style={{ color: "var(--warm-grey)" }}>
             {" · "}{scale.benchmarkKind} {formatValue(scale.benchmark, ind)}
@@ -314,8 +341,6 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
             ind={ind}
             width={264} height={54} showDots
             color={PERF_COLOR[sc.perf]}
-            dotColor={dl.favorable === false ? "var(--red-cerise)"
-                    : dl.favorable === true ? "var(--blue-maven)" : "var(--warm-grey)"}
           />
           <div style={{ fontSize: "13px", color: "var(--warm-grey)", marginTop: 3 }}>
             {t[0][0]}–{t[t.length - 1][0]}
