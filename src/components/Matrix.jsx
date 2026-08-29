@@ -37,6 +37,7 @@ export default function Matrix({
 }) {
   const glyphInds = indicators;
   const regionView = rows.some((r) => r.kind === "region");
+  const peerNoun = regionView ? "regions" : "countries";
 
   return (
     <div style={{ paddingBottom: 8 }}>
@@ -47,7 +48,7 @@ export default function Matrix({
               {regionView ? "Region" : "Country"}
             </th>
             <th style={{ ...th, textAlign: "right", minWidth: 138 }}>
-              <Tooltip content={<IndicatorCard ind={focus} />}>
+              <Tooltip content={<IndicatorCard ind={focus} extra={<BenchmarkLine ind={focus} scale={scales[focus.id]} peers={peerNoun} />} />}>
                 <span style={{ borderBottom: "1.5px dotted var(--blue-maven)" }}>
                   {focus.label}
                 </span>
@@ -96,11 +97,16 @@ export default function Matrix({
                     content={
                       <IndicatorCard
                         ind={ind}
-                        extra={!isFocus && (
-                          <div style={{ fontSize: "14.5px", fontWeight: 500, color: "var(--blue-maven)", marginBottom: 6 }}>
-                            Click to make this the focus metric
-                          </div>
-                        )}
+                        extra={
+                          <>
+                            <BenchmarkLine ind={ind} scale={scales[ind.id]} peers={peerNoun} />
+                            {!isFocus && (
+                              <div style={{ fontSize: "14.5px", fontWeight: 500, color: "var(--blue-maven)", marginBottom: 6 }}>
+                                Click to make this the focus metric
+                              </div>
+                            )}
+                          </>
+                        }
                       />
                     }
                   >
@@ -175,14 +181,27 @@ export default function Matrix({
                 </td>
 
                 <td style={{ ...td, textAlign: "right" }}>
+                  {/* The focus metric gets the same hover card as every other
+                      metric in the row. It used to carry only a native title
+                      attribute, so the most prominent number on the page was
+                      the one place the benchmark was not reachable. */}
+                  <Tooltip
+                    width={300}
+                    content={
+                      <RowMetricCard
+                        ind={focus} row={row} rec={rec} sc={sc}
+                        scale={scales[focus.id]} bundle={bundle}
+                      />
+                    }
+                  >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9 }}>
                     <span className="tabular"
                           style={{ fontSize: "var(--t-value)", fontWeight: 500, color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
                       {formatValue(rec?.v, focus)}
                     </span>
-                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={28}
-                              title={perfWord(sc.perf, focus, scales[focus.id])} />
+                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={28} />
                   </div>
+                  </Tooltip>
                   {rec && (
                     <span style={{ fontSize: "13px", color: stale ? "var(--blaze)" : "var(--warm-grey)", display: "block", marginTop: 1 }}>
                       {rec.y}{stale ? " · older reading" : ""}
@@ -303,6 +322,30 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
             {ind.aggShort && row.kind !== "region" ? ` · dotted line: ${ind.aggShort} for the region` : ""}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+/* What a column's glyphs are actually measured against.
+   Worth stating on the header because it is the one number that explains every
+   mark in the column, and until now it was only reachable by hovering an
+   individual cell. */
+function BenchmarkLine({ ind, scale, peers }) {
+  if (!scale || scale.benchmark == null) return null;
+  const isTarget = scale.benchmarkKind === "target";
+  return (
+    <div style={{ fontSize: "15px", color: "var(--ink-soft)", marginBottom: 8 }}>
+      {isTarget ? "Target" : "Peer median"}{" "}
+      <span className="tabular" style={{ fontWeight: 600, color: "var(--ink)" }}>
+        {formatValue(scale.benchmark, ind)}
+      </span>
+      {!isTarget && (
+        // Named, not "rows": the aggregate rows are on screen too and are
+        // deliberately not in this count.
+        <span style={{ color: "var(--warm-grey)" }}>
+          {" "}· across {scale.n} {peers}
+        </span>
       )}
     </div>
   );
