@@ -5,7 +5,7 @@ import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import Tooltip, { IndicatorCard } from "./Tooltip.jsx";
 import { formatValue, unitGap } from "../lib/format.js";
-import { score, delta, referenceFor, PERF } from "../lib/kpi.js";
+import { delta, referenceFor, benchmarkFor, scoreRow, shareOfWorld, worldRecord, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
    The main view: countries (or regions) down the side, metrics across the top.
@@ -24,9 +24,15 @@ const PERF_COLOR = {
   [PERF.NONE]: "var(--neutral-grey)",
 };
 
-function perfWord(perf, ind, scale, value) {
+function perfWord(perf, ind, bm, value, { share, isWorld } = {}) {
   if (perf === PERF.NONE) return "No recent data";
-  if (perf === PERF.NEUTRAL) return "No favorable direction — shown for context";
+  if (perf === PERF.NEUTRAL) {
+    if (share != null) return `${(share * 100).toFixed(1)}% of the world total — a share, not a verdict`;
+    // The World has a favourable direction like anything else; what it does not
+    // have is anything above it to be measured against.
+    if (isWorld) return "The benchmark itself — nothing sits above it";
+    return "No favorable direction — shown for context";
+  }
 
   /* A band metric is off target on BOTH sides, so 0.1% and 3.2% inflation score
      the same and draw the same cerise glyph. That is correct — deflation and
@@ -40,10 +46,12 @@ function perfWord(perf, ind, scale, value) {
     return value < lo ? `Below the ${band} target band` : `Above the ${band} target band`;
   }
 
-  const bm = scale?.benchmarkKind === "target" ? "the target" : "the peer median";
-  return perf === PERF.STRONG ? `Clearly better than ${bm}`
-       : perf === PERF.MID ? `Close to ${bm}`
-       : `Clearly worse than ${bm}`;
+  const against = bm?.kind === "world" ? "the World"
+                : bm?.kind === "target" ? "the target"
+                : "the peer median";
+  return perf === PERF.STRONG ? `Clearly better than ${against}`
+       : perf === PERF.MID ? `Close to ${against}`
+       : `Clearly worse than ${against}`;
 }
 
 export default function Matrix({
@@ -70,7 +78,7 @@ export default function Matrix({
               {regionView ? "Region" : "Country"}
             </th>
             <th style={{ ...th, textAlign: "right", minWidth: 178 }}>
-              <Tooltip content={<IndicatorCard ind={focus} extra={<BenchmarkLine ind={focus} scale={scales[focus.id]} peers={peerNoun} />} />}>
+              <Tooltip content={<IndicatorCard ind={focus} extra={<BenchmarkLine ind={focus} scale={scales[focus.id]} peers={peerNoun} bundle={bundle} regionView={regionView} />} />}>
                 <span style={{ borderBottom: "1.5px dotted var(--blue-maven)" }}>
                   {focus.label}
                 </span>
@@ -127,7 +135,7 @@ export default function Matrix({
                         ind={ind}
                         extra={
                           <>
-                            <BenchmarkLine ind={ind} scale={scales[ind.id]} peers={peerNoun} />
+                            <BenchmarkLine ind={ind} scale={scales[ind.id]} peers={peerNoun} bundle={bundle} regionView={regionView} />
                             {!isFocus && (
                               <div style={{ fontSize: "14.5px", fontWeight: 500, color: "var(--blue-maven)", marginBottom: 6 }}>
                                 Click to make this the focus metric
@@ -158,7 +166,8 @@ export default function Matrix({
         <tbody>
           {rows.map((row, i) => {
             const rec = row.get(focus.id);
-            const sc = score(rec, focus, scales[focus.id]);
+            const bmFocus = benchmarkFor(bundle, row, focus, scales[focus.id]);
+            const sc = scoreRow(rec, focus, scales[focus.id], bmFocus);
             const dl = delta(rec, focus);
             const isSel = selectedRow === row.id;
             const stale = rec && rec.y < bundle.yearSpan[1] - 1;
@@ -201,7 +210,7 @@ export default function Matrix({
                     width={300}
                     content={
                       <RowMetricCard
-                        ind={focus} row={row} rec={rec} sc={sc}
+                        ind={focus} row={row} rec={rec} sc={sc} bm={bmFocus}
                         scale={scales[focus.id]} bundle={bundle}
                       />
                     }
@@ -244,7 +253,8 @@ export default function Matrix({
 
                 {glyphInds.map((ind, gi) => {
                   const r2 = row.get(ind.id);
-                  const s2 = score(r2, ind, scales[ind.id]);
+                  const bm2 = benchmarkFor(bundle, row, ind, scales[ind.id]);
+                  const s2 = scoreRow(r2, ind, scales[ind.id], bm2);
                   return (
                     <td key={ind.id} style={{ ...td, textAlign: "center", padding: "9px 3px",
                                               borderLeft: startsGroup(gi) ? GROUP_RULE : undefined }}>
@@ -252,7 +262,7 @@ export default function Matrix({
                         width={300}
                         content={
                           <RowMetricCard
-                            ind={ind} row={row} rec={r2} sc={s2}
+                            ind={ind} row={row} rec={r2} sc={s2} bm={bm2}
                             scale={scales[ind.id]} bundle={bundle}
                           />
                         }
@@ -294,9 +304,11 @@ const td = { padding: "11px 8px", verticalAlign: "middle" };
    glyph in a ROW asks "how is this one doing?", and the honest answer is that
    row's number and the shape of its decade, not a paragraph the reader has
    already read fifteen times on the way down the table. */
-function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
+function RowMetricCard({ ind, row, rec, sc, bm, scale, bundle }) {
   const dl = delta(rec, ind);
   const t = rec?.t ?? [];
+  const share = shareOfWorld(bundle, rec, ind);
+  const reference = referenceFor(bundle, row, ind);
   return (
     <div>
       <div className="eyebrow" style={{ marginBottom: 2 }}>{ind.label}</div>
@@ -310,10 +322,10 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
       </div>
 
       <div style={{ fontSize: "14.5px", marginTop: 3, color: PERF_COLOR[sc.perf] }}>
-        {perfWord(sc.perf, ind, scale, rec?.v)}
-        {scale?.benchmark != null && sc.perf !== PERF.NONE && (
+        {perfWord(sc.perf, ind, bm, rec?.v, { share, isWorld: row.kind === "world" })}
+        {bm?.value != null && sc.perf !== PERF.NONE && (
           <span style={{ color: "var(--warm-grey)" }}>
-            {" · "}{scale.benchmarkKind} {formatValue(scale.benchmark, ind)}
+            {" · "}{bm.label} {formatValue(bm.value, ind)}
           </span>
         )}
       </div>
@@ -322,14 +334,18 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
         <div style={{ marginTop: 11, paddingTop: 11, borderTop: "1px solid var(--rule)" }}>
           <Sparkline
             points={t}
-            reference={referenceFor(bundle, row, ind)}
+            reference={reference}
             ind={ind}
             width={264} height={54} showDots
             color={PERF_COLOR[sc.perf]}
           />
           <div style={{ fontSize: "13px", color: "var(--warm-grey)", marginTop: 3 }}>
             {t[0][0]}–{t[t.length - 1][0]}
-            {ind.aggShort && row.kind !== "region" ? ` · dotted line: ${ind.aggShort} for the region` : ""}
+            {reference?.kind === "series"
+              ? ` · dotted line: ${reference.label}`
+              : reference?.kind === "band"
+              ? " · shaded strip: the target band"
+              : ""}
           </div>
         </div>
       )}
@@ -341,21 +357,52 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
    Worth stating on the header because it is the one number that explains every
    mark in the column, and until now it was only reachable by hovering an
    individual cell. */
-function BenchmarkLine({ ind, scale, peers }) {
-  if (!scale || scale.benchmark == null) return null;
-  const isTarget = scale.benchmarkKind === "target";
+function BenchmarkLine({ ind, scale, peers, bundle, regionView }) {
+  const isTarget = ind.direction === "band" && ind.targetBand;
+  const world = worldRecord(bundle, ind);
+  // A regional subtotal is never scored against the countries; totals are not
+  // scored at all. Both are stated here so the column says what it did.
+  const regionsVsWorld = !isTarget && ind.aggKind !== "total"
+    && (ind.direction === "up" || ind.direction === "down") && world;
+
+  const line = { fontSize: "15px", color: "var(--ink-soft)", marginBottom: 4 };
+  const strong = { fontWeight: 600, color: "var(--ink)" };
+
   return (
-    <div style={{ fontSize: "15px", color: "var(--ink-soft)", marginBottom: 8 }}>
-      {isTarget ? "Target" : "Peer median"}{" "}
-      <span className="tabular" style={{ fontWeight: 600, color: "var(--ink)" }}>
-        {formatValue(scale.benchmark, ind)}
-      </span>
-      {!isTarget && (
-        // Named, not "rows": the aggregate rows are on screen too and are
-        // deliberately not in this count.
-        <span style={{ color: "var(--warm-grey)" }}>
-          {" "}· across {scale.n} {peers}
-        </span>
+    <div style={{ marginBottom: 8 }}>
+      {isTarget ? (
+        <div style={line}>
+          Target{" "}
+          <span className="tabular" style={strong}>{formatValue(ind.target, ind)}</span>
+          <span style={{ color: "var(--warm-grey)" }}> · every row, country or region</span>
+        </div>
+      ) : (
+        <>
+          {!regionView && scale?.benchmark != null && (
+            <div style={line}>
+              Countries:{" "}
+              <span className="tabular" style={strong}>{formatValue(scale.benchmark, ind)}</span>
+              <span style={{ color: "var(--warm-grey)" }}>
+                {" "}— the median of the {scale.n} {peers} on screen
+              </span>
+            </div>
+          )}
+          <div style={line}>
+            {regionView ? "Regions:" : "Regional subtotals:"}{" "}
+            {regionsVsWorld ? (
+              <>
+                <span className="tabular" style={strong}>{formatValue(world.v, ind)}</span>
+                <span style={{ color: "var(--warm-grey)" }}> — the World aggregate</span>
+              </>
+            ) : (
+              <span style={{ color: "var(--warm-grey)" }}>
+                {ind.aggKind === "total"
+                  ? "no verdict — a region is part of the world total, so the hover gives its share instead"
+                  : "no verdict — nothing here is better or worse"}
+              </span>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

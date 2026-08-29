@@ -5,7 +5,7 @@ import Matrix from "./components/Matrix.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
 import QuickStart, { hasSeenQuickStart } from "./components/QuickStart.jsx";
-import { buildScalesFromRows, regionRecord, worldRecord, score, PERF } from "./lib/kpi.js";
+import { buildScalesFromRows, regionRecord, worldRecord, benchmarkFor, scoreRow, PERF } from "./lib/kpi.js";
 import { DATASET_URL } from "./lib/sources.js";
 
 /* Country presets.
@@ -205,7 +205,8 @@ export default function App() {
 
     const keep = (r) => {
       if (!onlyWeak) return true;
-      const s = score(r.get(focus.id), focus, scales[focus.id]);
+      const s = scoreRow(r.get(focus.id), focus, scales[focus.id],
+                         benchmarkFor(bundle, r, focus, scales[focus.id]));
       return s.perf === PERF.WEAK || s.perf === PERF.NONE;
     };
 
@@ -224,7 +225,16 @@ export default function App() {
     const gdpOf = (row) => row.get(gdpInd.id)?.v ?? null;
     const byGdpDesc = (a, b) => (gdpOf(b) ?? -Infinity) - (gdpOf(a) ?? -Infinity);
 
-    if (view === "region") return [worldRow(), ...dataRows.filter(keep).sort(byGdpDesc)];
+    // The World leads both views when the Bank publishes it. In region view it
+    // is the grand total over the rows beneath; in country view it is also the
+    // line every regional subtotal below is scored against, so showing it makes
+    // the benchmark visible rather than something a reader has to be told.
+    const hasWorld = Object.keys(bundle.worldSeries ?? {}).length > 0;
+
+    if (view === "region") {
+      const rest = dataRows.filter(keep).sort(byGdpDesc);
+      return hasWorld ? [worldRow(), ...rest] : rest;
+    }
 
     const byRegion = new Map();
     for (const r of dataRows.filter(keep)) {
@@ -233,6 +243,7 @@ export default function App() {
     }
 
     const out = [];
+    if (hasWorld) out.push(worldRow());
     // Sections are ordered by the region's own published GDP aggregate, not by
     // the sum of whichever members the reader has selected.
     const regionGdp = (ri) => regionRecord(bundle, ri, gdpInd)?.v ?? -Infinity;
@@ -406,10 +417,20 @@ function Method({ bundle }) {
         percent, which report percentage <em>points</em> — unemployment moving 4.0% to 4.4% is
         not "up 10%". Rows are ordered by <strong>GDP descending</strong> rather than by the
         focus metric, so switching metrics never reshuffles the table and two metrics can be
-        compared by scanning the same row. Each section opens with the Bank's published
-        <strong> regional aggregate</strong>, shown for reference but excluded from the
-        benchmark maths — letting a region's total into the median of its own members would
-        move the very line it exists to illustrate.
+        compared by scanning the same row. The table opens with the <strong>World</strong>, and each
+        section with the Bank's published <strong>regional aggregate</strong> — shown for
+        reference but excluded from the country median, since letting a region's total into
+        the median of its own members would move the very line it exists to illustrate.
+      </p>
+      <p>
+        <strong>Regional subtotals are not scored against countries.</strong> A region is not a
+        big country: its GDP is the sum of its members, so measuring it against them would make
+        every region "clearly better" by arithmetic rather than by finding. Regions are measured
+        against the <strong>World</strong> instead — the only peer a region has, and the same
+        line their sparklines are drawn against. Where even that comparison is empty the glyph
+        stays grey and says so: no region can exceed the world total, so GDP, population and net
+        migration carry a share of the world instead of a verdict, and the World's own row has
+        nothing above it at all.
       </p>
       <p>
         <strong>Inflation is scored against a target band</strong>, not against its peers, so

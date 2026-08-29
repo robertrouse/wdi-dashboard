@@ -3,7 +3,7 @@ import Value from "./Value.jsx";
 import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import { formatValue } from "../lib/format.js";
-import { score, delta, trendSlope, referenceFor, PERF } from "../lib/kpi.js";
+import { delta, trendSlope, referenceFor, benchmarkFor, scoreRow, shareOfWorld, PERF } from "../lib/kpi.js";
 import { indicatorUrl, economyUrl } from "../lib/sources.js";
 
 /* --------------------------------------------------------------------------
@@ -119,7 +119,9 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
             </div>
             {g.items.map((ind) => {
               const rec = row.get(ind.id);
-              const sc = score(rec, ind, scales[ind.id]);
+              const bm = benchmarkFor(bundle, row, ind, scales[ind.id]);
+              const sc = scoreRow(rec, ind, scales[ind.id], bm);
+              const share = shareOfWorld(bundle, rec, ind);
               const dl = delta(rec, ind);
               const slope = trendSlope(rec);
               const scale = scales[ind.id];
@@ -152,9 +154,13 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                       {ind.label}
                       <span aria-hidden="true" style={{ color: "var(--blue-maven)", marginLeft: 5, fontSize: "12px" }}>↗</span>
                     </a>
+                    {/* What THIS row is measured against — the World for a
+                        regional subtotal, the peer median for a country. */}
                     <div style={{ fontSize: "13.5px", color: "var(--warm-grey)" }}>
-                      {scale?.benchmark != null
-                        ? `${scale.benchmarkKind} ${formatValue(scale.benchmark, ind)}`
+                      {bm.value != null
+                        ? `${bm.label} ${formatValue(bm.value, ind)}`
+                        : share != null
+                        ? `${(share * 100).toFixed(1)}% of the world total`
                         : "no benchmark"}
                     </div>
                   </div>

@@ -161,6 +161,97 @@ export function delta(rec, ind) {
   return { dir, favorable, abs, pct, v: rec.v, p: rec.p, from: rec.py };
 }
 
+/* --------------------------------------------------------------------------
+   What a row is measured against.
+
+   A regional subtotal is not a big country, and scoring it as one produced
+   verdicts that were decided before the data was consulted. Against a set of
+   selected countries, six of seven regions read "strong" on GDP — a regional
+   total nearly always exceeds any single member of it, so the glyph was
+   restating arithmetic. On under-5 mortality against a G20 set, six of seven
+   read "weak" for the mirror-image reason. Neither was a finding.
+
+   Regional subtotals are therefore measured against the WORLD aggregate, which
+   is the only peer a region has. That also makes the glyph and the sparkline
+   agree: referenceFor() already draws a region's dotted line against the World,
+   and a row whose two marks are measured from different places is lying to at
+   least one reader.
+
+   The exclusions mirror referenceFor() exactly, and for the same reasons:
+
+     · totals        GDP, population, net migration. Every region is below the
+                     world total by construction, so a better/worse verdict is
+                     arithmetic, not information. No verdict; the hover states
+                     the region's SHARE of the world total instead, which is the
+                     real quantity.
+     · no direction  urbanisation. Nothing is better, so nothing is claimed.
+     · band metrics  inflation keeps its target band — a target beats a peer,
+                     and it applies to regions exactly as it does to countries.
+     · the World     has nothing above it, so it carries no verdict at all.
+
+   K is the relative difference that reads as "clearly" better or worse. At 0.30
+   the middle band is about ±7% of the world figure, which across the real data
+   leaves a genuine spread (31 strong / 14 near / 25 weak over 70 region-metric
+   pairs) rather than the near-binary split a tighter constant produces.
+   -------------------------------------------------------------------------- */
+
+const WORLD_SPREAD = 0.30;
+
+/** Rows that carry a published subtotal rather than a single economy. */
+export function isAggregateRow(row) {
+  return row?.kind === "region" || row?.kind === "aggregate" || row?.kind === "world";
+}
+
+/**
+ * What this row's glyph is measured against.
+ * `kind` is "target" | "world" | "peer" | "none"; `value` is the number itself.
+ */
+export function benchmarkFor(bundle, row, ind, scale) {
+  if (ind.direction === "band" && ind.targetBand) {
+    return { kind: "target", value: ind.target, label: "target" };
+  }
+  if (isAggregateRow(row)) {
+    const noVerdict = { kind: "none", value: null, label: "" };
+    if (row.kind === "world") return noVerdict;              // nothing sits above it
+    if (ind.aggKind === "total") return noVerdict;           // a share, not a verdict
+    if (ind.direction !== "up" && ind.direction !== "down") return noVerdict;
+    const w = worldRecord(bundle, ind);
+    return w ? { kind: "world", value: w.v, label: "World" } : noVerdict;
+  }
+  return {
+    kind: "peer",
+    value: scale?.benchmark ?? null,
+    label: scale?.benchmarkKind ?? "peer median",
+  };
+}
+
+/** Score a row against whatever benchmarkFor() says governs it. */
+export function scoreRow(rec, ind, scale, bm) {
+  if (!rec || rec.v == null) return { perf: PERF.NONE, goodness: null, deviation: 0, rank: null };
+  if (!bm || bm.kind === "none") return { perf: PERF.NEUTRAL, goodness: null, deviation: 0, rank: null };
+
+  if (bm.kind === "world") {
+    if (bm.value == null || bm.value === 0) {
+      return { perf: PERF.NONE, goodness: null, deviation: 0, rank: null };
+    }
+    const rel = (rec.v - bm.value) / Math.abs(bm.value);
+    const signed = ind.direction === "down" ? -rel : rel;
+    const goodness = 0.5 + 0.5 * Math.tanh(signed / WORLD_SPREAD);
+    const perf = goodness >= 0.62 ? PERF.STRONG : goodness >= 0.38 ? PERF.MID : PERF.WEAK;
+    return { perf, goodness, deviation: (goodness - 0.5) * 2, rank: null };
+  }
+
+  return score(rec, ind, scale);   // peer median, or an explicit target band
+}
+
+/** A region's share of the world total — the honest reading for summed metrics. */
+export function shareOfWorld(bundle, rec, ind) {
+  if (ind.aggKind !== "total" || !rec || rec.v == null) return null;
+  const w = worldRecord(bundle, ind);
+  if (!w || !w.v) return null;
+  return rec.v / w.v;
+}
+
 /**
  * The region's benchmark: the World Bank's own published subtotal.
  *
