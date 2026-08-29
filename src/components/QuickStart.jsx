@@ -8,9 +8,15 @@ import { PERF } from "../lib/kpi.js";
 
    Terse on purpose. The chapter this dashboard comes from praises the original
    for being figure-out-able without instructions, so a tutorial that has to
-   explain the whole thing would be an admission of failure. Four lines: what
-   the glyph means, what the sparkline does not mean, that the benchmark moves,
-   and where to change things. Everything else stays discoverable on hover.
+   explain the whole thing would be an admission of failure. Two points — how
+   to read a glyph, and when it withholds a verdict — plus one line on the
+   controls. Everything else stays discoverable on hover.
+
+   Each point is illustrated by the real KpiGlyph rather than a picture of one,
+   so what the reader is shown here is literally what they will meet in the
+   table. A step whose glyph does not demonstrate its sentence does not belong:
+   the units point was cut for exactly that reason, since it was illustrated by
+   the dashed "no data" circle, which has nothing to do with units.
 
    Shown once per browser. localStorage can throw outright (Safari private
    mode, blocked site data), so every access is guarded and a failure just
@@ -37,19 +43,17 @@ function markSeen() {
 
 const STEPS = [
   {
-    glyph: { perf: PERF.STRONG, deviation: 0.8 },
+    glyphs: [
+      { perf: PERF.STRONG, deviation: 0.8 },
+      { perf: PERF.WEAK, deviation: -0.8 },
+    ],
     title: "The circle is the comparison",
-    body: "Filled above the midline means better than the benchmark; below means worse. How much is filled is how far. Every metric uses this one scale, which is what lets a $29T economy and a 2.1% inflation rate be read side by side.",
+    body: "Filled above the midline, in blue, means better than the benchmark; filled below, in cerise, means worse. How much is filled is how far. Every metric uses this one scale, which is what lets a $29T economy and a 2.1% inflation rate be read side by side.",
   },
   {
-    glyph: { perf: PERF.NEUTRAL, deviation: -0.6 },
+    glyphs: [{ perf: PERF.NEUTRAL, deviation: -0.6 }],
     title: "Grey means no verdict",
     body: "Population and urbanisation are filled the same way — position is still a fact — but they carry no colour, because being more populous than your neighbours is neither good nor bad.",
-  },
-  {
-    glyph: { perf: PERF.NONE, deviation: 0 },
-    title: "Numbers stay in their own units",
-    body: "The printed value is never rescaled, and the year beneath it is the year that reading is from — often not the same year across countries. Sparklines are scaled to their own range, so shape is comparable but height is not.",
   },
 ];
 
@@ -100,8 +104,12 @@ export default function QuickStart({ onClose }) {
                 padding: "18px 0", borderBottom: "1px solid var(--rule)",
               }}
             >
-              <div style={{ flexShrink: 0, paddingTop: 2 }}>
-                <KpiGlyph perf={s.glyph.perf} deviation={s.glyph.deviation} size={34} />
+              {/* Fixed width so a one-glyph row and a two-glyph row keep their
+                  titles on the same left edge. */}
+              <div style={{ flexShrink: 0, paddingTop: 2, width: 80, display: "flex", gap: 10 }}>
+                {s.glyphs.map((g, i) => (
+                  <KpiGlyph key={i} perf={g.perf} deviation={g.deviation} size={34} />
+                ))}
               </div>
               <div>
                 <div style={{ fontSize: "18px", fontWeight: 600, lineHeight: 1.25 }}>{s.title}</div>
