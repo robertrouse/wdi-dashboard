@@ -16,7 +16,7 @@ const ITEMS = [
   { perf: PERF.WEAK, dev: -0.85, label: "Clearly worse", hint: "bottom of the peer set" },
   // Shown filled, because these glyphs are filled: they still report position
   // against the benchmark. What they withhold is the verdict, not the reading.
-  { perf: PERF.NEUTRAL, dev: 0.7, label: "No verdict", hint: "position shown, but neither end is better" },
+  { perf: PERF.NEUTRAL, dev: 0.7, label: "Neutral", hint: "position shown, but neither end is better" },
   { perf: PERF.NONE, dev: 0, label: "No recent data", hint: "not measured lately" },
 ];
 

@@ -52,7 +52,7 @@ const STEPS = [
   },
   {
     glyphs: [{ perf: PERF.NEUTRAL, deviation: -0.6 }],
-    title: "Grey means no verdict",
+    title: "Grey means neutral",
     body: "Population and urbanisation are filled the same way — position is still a fact — but they carry no colour, because being more populous than your neighbours is neither good nor bad.",
   },
 ];
