@@ -183,6 +183,23 @@ Source material lives in the parent folder `../`:
    data-only change (invariant 7). Rows without a reference keep the plain
    self-scaled trace and single performance colour they had before.
 
+## Attribution and source links
+
+Every figure is the World Bank's measurement, and a reader must be able to get
+back to it. `src/lib/sources.js` builds the canonical links; the detail modal
+makes each metric name a link to that indicator scoped to that economy, the
+modal title links to the economy, and the method note and quick start both
+credit the dataset under CC BY 4.0.
+
+`?locations=` takes the **2-character** code, not the 3-letter series key: `CN`
+not `CHN`, `Z4` for East Asia & Pacific, `1W` for the World. Countries carry
+`iso2`; `bundle.aggIso2` carries the same for the aggregates, emitted by both
+build scripts. Rows carry `iso2` so the modal never has to look it up.
+
+Note the hover cards cannot hold links — `Tooltip` sets `pointerEvents: none`
+on its card so it never eats the mouse — which is why the source links live in
+the modal rather than on the column headers.
+
 ## Brand tokens
 
 Defined in `src/index.css`. Kanit throughout, loaded from the Google Fonts CDN

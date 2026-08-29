@@ -67,6 +67,17 @@ def load_regions(path):
     world = (spec.get("world") or {}).get("code")
     return by_name, [a["code"] for a in spec["aggregates"]], world
 
+def load_agg_iso2(path, codes):
+    """Aggregate code -> its 2-character code, for data.worldbank.org links."""
+    out = {}
+    with open(path, encoding="utf8", newline="") as f:
+        for r in csv.DictReader(f):
+            if r["Country Code"] in codes:
+                a2 = (r.get("2-alpha code") or "").strip()
+                if a2:
+                    out[r["Country Code"]] = a2
+    return out
+
 def load_countries(path):
     rows = []
     with open(path, encoding="utf8", newline="") as f:
@@ -143,6 +154,7 @@ def main():
     ccodes = {c["c"] for c in countries}
     agg_by_name, agg_codes, world_code = load_regions(a.regions)
     pull = set(agg_codes) | ({world_code} if world_code else set())
+    agg_iso2 = load_agg_iso2(a.country, pull)
 
     print(f"[build] scanning {a.tall} …", file=sys.stderr)
     obs = scan_tall(a.tall, set(code2id), ccodes | pull, a.min_year)
@@ -220,6 +232,7 @@ def main():
         "series": series,
         "regionSeries": region_series,
         "worldSeries": world_series,
+        "aggIso2": agg_iso2,
     }
 
     out = Path(a.out)

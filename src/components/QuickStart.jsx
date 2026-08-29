@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import KpiGlyph from "./KpiGlyph.jsx";
 import { PERF } from "../lib/kpi.js";
+import { DATASET_URL } from "../lib/sources.js";
 
 /* --------------------------------------------------------------------------
    First-run quick start.
@@ -126,6 +127,15 @@ export default function QuickStart({ onClose }) {
             columns. <strong>Click a row</strong> for that country in full. Everything else
             lives under <strong>Filters</strong> — including which countries you are
             comparing, which moves every benchmark on screen.
+          </p>
+          <p style={{ fontSize: "15px", lineHeight: 1.5, color: "var(--warm-grey)",
+                      borderTop: "1px solid var(--rule)", padding: "12px 0 2px" }}>
+            All figures are the World Bank's{" "}
+            <a href={DATASET_URL} target="_blank" rel="noopener noreferrer"
+               style={{ color: "var(--blue-maven)" }}>
+              World Development Indicators
+            </a>{" "}(CC&nbsp;BY&nbsp;4.0) — open any row to reach the source page for that
+            country and metric.
           </p>
         </div>
 

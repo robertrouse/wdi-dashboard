@@ -4,6 +4,7 @@ import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import { formatValue } from "../lib/format.js";
 import { score, delta, trendSlope, referenceFor, PERF } from "../lib/kpi.js";
+import { indicatorUrl, economyUrl } from "../lib/sources.js";
 
 /* --------------------------------------------------------------------------
    Country detail.
@@ -82,7 +83,17 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
              : row.kind === "region" || row.kind === "aggregate" ? "Region detail · official World Bank aggregate"
              : "Country detail"}
           </div>
-          <h2 style={{ fontSize: "24px", lineHeight: 1.1, marginTop: 1 }}>{row.label}</h2>
+          <h2 style={{ fontSize: "24px", lineHeight: 1.1, marginTop: 1 }}>
+            {row.iso2 ? (
+              <a href={economyUrl(row.iso2)} target="_blank" rel="noopener noreferrer"
+                 title={`${row.label} on data.worldbank.org`}
+                 style={{ color: "var(--white)", textDecoration: "none",
+                          borderBottom: "1px dotted var(--raven-2)" }}>
+                {row.label}
+                <span aria-hidden="true" style={{ color: "var(--blue-ice)", marginLeft: 6, fontSize: "14px" }}>↗</span>
+              </a>
+            ) : row.label}
+          </h2>
           {row.sub && <div style={{ fontSize: "16px", color: "var(--raven-2)", marginTop: 2 }}>{row.sub}</div>}
         </div>
         <button
@@ -124,7 +135,23 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 500, lineHeight: 1.2 }}>{ind.label}</div>
+                    {/* Every number here is somebody else's measurement, so the
+                        metric name is the way back to it — the World Bank's own
+                        page for this indicator, already scoped to this economy. */}
+                    <a
+                      href={indicatorUrl(ind, row.iso2)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`${ind.fullName} for ${row.label} on data.worldbank.org`}
+                      style={{
+                        fontSize: "16px", fontWeight: 500, lineHeight: 1.2,
+                        color: "var(--ink)", textDecoration: "none",
+                        borderBottom: "1px dotted var(--neutral-grey)",
+                      }}
+                    >
+                      {ind.label}
+                      <span aria-hidden="true" style={{ color: "var(--blue-maven)", marginLeft: 5, fontSize: "12px" }}>↗</span>
+                    </a>
                     <div style={{ fontSize: "13.5px", color: "var(--warm-grey)" }}>
                       {scale?.benchmark != null
                         ? `${scale.benchmarkKind} ${formatValue(scale.benchmark, ind)}`

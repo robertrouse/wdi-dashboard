@@ -173,6 +173,14 @@ regions.forEach((name, i) => {
   if (!regionCodes[i]) console.error(`[refresh] WARNING: no official aggregate mapped for region "${name}"`);
 });
 
+/* The 2-character codes data.worldbank.org uses in its `?locations=` links.
+   Countries already carry iso2; aggregates need theirs too (EAS -> Z4,
+   WLD -> 1W) so a region row can link back to its own source page. */
+const aggIso2 = {};
+for (const e of economies) {
+  if (aggCodes.has(e.id) && e.iso2Code) aggIso2[e.id] = e.iso2Code.trim();
+}
+
 const regionSeries = {};
 for (const code of regionCodes.filter(Boolean)) {
   const byInd = aggObs[code];
@@ -214,6 +222,7 @@ const bundle = {
   series,
   regionSeries,
   worldSeries,
+  aggIso2,
 };
 
 const out = "public/data/wdi.json";

@@ -6,6 +6,7 @@ import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
 import QuickStart, { hasSeenQuickStart } from "./components/QuickStart.jsx";
 import { buildScalesFromRows, regionRecord, worldRecord, score, PERF } from "./lib/kpi.js";
+import { DATASET_URL } from "./lib/sources.js";
 
 /* Country presets.
 
@@ -143,6 +144,7 @@ export default function App() {
             sub: code
               ? `World Bank aggregate ${code} · every economy in the region`
               : "No official aggregate published for this region",
+            iso2: code ? bundle.aggIso2?.[code] : null,
             get: (id) => (cache[id] ??= regionRecord(bundle, ri, indicators.find((i) => i.id === id))),
           };
         })
@@ -154,6 +156,7 @@ export default function App() {
       id: c,
       label: byCode[c].n,
       region: byCode[c].r,
+      iso2: byCode[c].iso2,          // for the link back to data.worldbank.org
       get: (id) => bundle.series[c]?.[id] ?? null,
     }));
   }, [bundle, view, visibleCodes, byCode, focus, indicators]);
@@ -183,6 +186,7 @@ export default function App() {
         sub: code
           ? `Regional aggregate ${code} · every economy in the region`
           : "No official aggregate published for this region",
+        iso2: code ? bundle.aggIso2?.[code] : null,
         region: ri,
         get: (id) => (cache[id] ??= regionRecord(bundle, ri, findInd(id))),
       };
@@ -194,6 +198,7 @@ export default function App() {
         id: "agg-world",
         label: "World",
         sub: "World aggregate WLD · every economy the Bank counts",
+        iso2: bundle.aggIso2?.WLD ?? null,
         get: (id) => (cache[id] ??= worldRecord(bundle, findInd(id))),
       };
     };
@@ -415,7 +420,12 @@ function Method({ bundle }) {
         hover card opens with the category it belongs to.
       </p>
       <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", borderTop: "1px solid var(--rule)", paddingTop: 14 }}>
-        Source: {bundle.source}. Bundle generated {bundle.generated}. Values are each country's
+        Source:{" "}
+        <a href={DATASET_URL} target="_blank" rel="noopener noreferrer"
+           style={{ color: "var(--blue-maven)" }}>
+          {bundle.source}
+        </a>, CC&nbsp;BY&nbsp;4.0. Bundle generated {bundle.generated}. Open any row to reach the
+        World Bank's own page for that country and metric. Values are each country's
         most recent available observation — not always the same year, which is why the year is
         printed beneath every value. Regions follow the World Bank's own classification, revised
         in 2024 when Pakistan and Afghanistan moved out of South Asia.
