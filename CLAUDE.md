@@ -100,8 +100,12 @@ Source material lives in the parent folder `../`:
     no standing text. The detail modal carries no caveat text either: fifteen
     repeated paragraphs pushed the numbers off screen. One place, one question.
 
-11. **Aggregate rows are shown, but never set the benchmark.** Each section
-    opens with its regional aggregate (region view opens with the World). They
+11. **Aggregate rows are shown, but never set the benchmark — and they ARE the
+    section head.** Each section opens with its regional aggregate (region view
+    opens with the World). There is deliberately no separate heading row above
+    it: that repeated the region's name and carried a country count describing
+    the reader's SELECTION, immediately above a row whose entire point is that
+    it covers every economy in the region. Two labels, one of them false. They
     are built in the `rows` memo, *after* `scales` is derived from `dataRows` —
     that ordering is load-bearing. Letting a region's total into the median of
     its own members would move the very line the row exists to illustrate. They

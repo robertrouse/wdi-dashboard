@@ -230,9 +230,12 @@ export default function App() {
     const ordered = [...byRegion.entries()].sort((a, b) => regionGdp(b[0]) - regionGdp(a[0]));
     for (const [ri, kids] of ordered) {
       kids.sort(byGdpDesc);
-      // The aggregate leads the section: it is the line the members below are
-      // being read against, so it wants to be seen before them, not found after.
-      out.push({ kind: "groupHeader", label: bundle.regions[ri], count: kids.length });
+      /* The aggregate row IS the section head — it carries the region's name,
+         set apart by tint and rule, and it is the line the members below are
+         read against. A separate all-caps heading above it repeated the name
+         and added a country count that described the reader's SELECTION rather
+         than the region, directly next to a row whose whole point is that it
+         covers every economy in the region. Two labels, one of them false. */
       out.push(aggregateRow(ri));
       out.push(...kids);
     }

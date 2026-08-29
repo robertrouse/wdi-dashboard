@@ -156,25 +156,6 @@ export default function Matrix({
         </thead>
         <tbody>
           {rows.map((row, i) => {
-            if (row.kind === "groupHeader") {
-              return (
-                <tr key={`g-${row.label}`}>
-                  <td colSpan={4 + glyphInds.length}
-                      style={{
-                        padding: "22px 4px 7px", fontSize: "13px", fontWeight: 600,
-                        letterSpacing: "0.14em", textTransform: "uppercase",
-                        color: "var(--blue-maven)",
-                        borderBottom: "1px solid var(--rule)",
-                      }}>
-                    {row.label}
-                    <span style={{ fontWeight: 300, letterSpacing: 0, textTransform: "none", color: "var(--warm-grey)", marginLeft: 10 }}>
-                      {row.count} {row.count === 1 ? "country" : "countries"}
-                    </span>
-                  </td>
-                </tr>
-              );
-            }
-
             const rec = row.get(focus.id);
             const sc = score(rec, focus, scales[focus.id]);
             const dl = delta(rec, focus);
@@ -191,6 +172,9 @@ export default function Matrix({
                 onClick={() => onSelectRow?.(row)}
                 style={{
                   borderBottom: isAgg ? "1.5px solid var(--cool-grey)" : "1px solid var(--rule)",
+                  // Framed top and bottom, so it reads as the head of a section
+                  // now that there is no separate heading row above it.
+                  borderTop: isAgg && i > 0 ? "1.5px solid var(--cool-grey)" : undefined,
                   background: isSel ? "var(--surface-alt)"
                             : isAgg ? "rgba(216,233,244,.42)"
                             : i % 2 ? "transparent" : "rgba(255,255,255,.55)",
