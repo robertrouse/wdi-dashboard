@@ -21,15 +21,25 @@ import { delta, referenceFor, benchmarkFor, scoreRow, shareOfWorld, PERF } from 
 const GLYPH_SIZE = 28;
 const GLYPH_GAP = 9;
 
-/* The year is taken out of the cell's flow height — its own line box is pulled
-   back off the bottom margin — so the value line is what verticalAlign:middle
-   centres. Left in the flow it dragged the number and glyph 8px above the row's
-   centreline to make room for a caption. It still renders where it always did,
-   just below the pair, inside the cell's bottom padding. */
+/* Number and year form one block, and that BLOCK is what sits centred in the
+   row — equal air above and below it. Centring the number's own line instead
+   and letting the year hang beneath was measurably precise and looked wrong:
+   the caption is part of the thing, so leaving it out of the balance tipped
+   the cell.
+
+   The gap between them is tight on purpose. Kanit's line box for a 22px figure
+   is 33px, eleven of those below the digits, so most of what read as a gap was
+   the number's own leading rather than any margin. */
 const YEAR_SIZE = 13;
-const YEAR_LEAD = 1.05;   // its own leading, not a gap: half of it sat above the digits
+const YEAR_LEAD = 1.05;   // half of a 1.2 leading sat above the digits
 const YEAR_GAP = -3;      // closes the slack under the number's line box
-const YEAR_PULL = -(YEAR_SIZE * YEAR_LEAD + YEAR_GAP);
+
+/* The value's own line box, mirrored by the Change column so the two figures
+   share a baseline and their captions share another. Must track --t-value and
+   Value's default lineHeight. */
+const VALUE_SIZE = 22;
+const VALUE_LEAD = 1.1;
+const VALUE_LINE = VALUE_SIZE * VALUE_LEAD;
 
 const PERF_COLOR = {
   [PERF.STRONG]: "var(--blue-maven)",
@@ -242,30 +252,44 @@ export default function Matrix({
                       the number rather than under the circle. */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end",
                                 gap: GLYPH_GAP, whiteSpace: "nowrap" }}>
-                    <Value v={rec?.v} ind={focus} />
+                    <div style={{ textAlign: "right" }}>
+                      <Value v={rec?.v} ind={focus} />
+                      {rec && (
+                        <div style={{ fontSize: `${YEAR_SIZE}px`, lineHeight: YEAR_LEAD,
+                                      marginTop: YEAR_GAP,
+                                      color: stale ? "var(--blaze)" : "var(--warm-grey)" }}>
+                          {rec.y}{stale ? " · older reading" : ""}
+                        </div>
+                      )}
+                    </div>
                     <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={GLYPH_SIZE} />
                   </div>
                   </Tooltip>
-                  {/* Outside the Tooltip: its anchor is an inline-flex box, so
-                      anything left inside becomes a flex SIBLING of the value
-                      row and lands beside the glyph instead of beneath it. */}
-                  {rec && (
-                    <div style={{ fontSize: `${YEAR_SIZE}px`, lineHeight: YEAR_LEAD,
-                                  marginTop: YEAR_GAP, marginBottom: YEAR_PULL,
-                                  textAlign: "right", marginRight: GLYPH_SIZE + GLYPH_GAP,
-                                  color: stale ? "var(--blaze)" : "var(--warm-grey)" }}>
-                      {rec.y}{stale ? " · older reading" : ""}
-                    </div>
-                  )}
                 </td>
 
                 <td style={{ ...td, textAlign: "right" }}>
-                  <DeltaArrow d={dl} ind={focus} />
-                  {dl.from && (
-                    <span style={{ display: "block", fontSize: "13px", color: "var(--warm-grey)" }}>
-                      vs {dl.from}
-                    </span>
-                  )}
+                  {/* Built to the same block as the value cell so the two read
+                      as one line: the figure sits in a band the height of the
+                      glyph, and its "vs" caption gets the year's own size,
+                      leading and negative gap. Both blocks then come out the
+                      same height, so centring each in its row leaves the
+                      figures on one axis and the captions on another. */}
+                  <div>
+                    {/* A line box, not a flex band. Centring the delta inside a
+                        fixed-height flex row aligned its BOX to the band's
+                        middle, which left its baseline 1.5px off the value's;
+                        an ordinary line box with the same leading seats both
+                        figures on the same baseline instead. */}
+                    <div style={{ lineHeight: VALUE_LEAD, fontSize: `${VALUE_SIZE}px` }}>
+                      <DeltaArrow d={dl} ind={focus} />
+                    </div>
+                    {dl.from && (
+                      <div style={{ fontSize: `${YEAR_SIZE}px`, lineHeight: YEAR_LEAD,
+                                    marginTop: YEAR_GAP, color: "var(--warm-grey)" }}>
+                        vs {dl.from}
+                      </div>
+                    )}
+                  </div>
                 </td>
 
                 <td style={{ ...td, paddingLeft: 18 }}>
