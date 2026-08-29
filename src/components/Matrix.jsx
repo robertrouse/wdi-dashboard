@@ -1,9 +1,10 @@
 import { Fragment } from "react";
 import KpiGlyph from "./KpiGlyph.jsx";
+import Value from "./Value.jsx";
 import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import Tooltip, { IndicatorCard } from "./Tooltip.jsx";
-import { formatValue, splitValue } from "../lib/format.js";
+import { formatValue } from "../lib/format.js";
 import { score, delta, referenceFor, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
@@ -212,17 +213,7 @@ export default function Matrix({
                       column exists to keep together. */}
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "flex-end",
                                 gap: 9, whiteSpace: "nowrap" }}>
-                    <span style={{ color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
-                      <span className="tabular" style={{ fontSize: "var(--t-value)", fontWeight: 500 }}>
-                        {splitValue(rec?.v, focus).num}
-                      </span>
-                      {splitValue(rec?.v, focus).unit && (
-                        <span style={{ fontSize: "var(--t-small)", fontWeight: 400,
-                                       color: "var(--warm-grey)", marginLeft: 4 }}>
-                          {splitValue(rec?.v, focus).unit}
-                        </span>
-                      )}
-                    </span>
+                    <Value v={rec?.v} ind={focus} />
                     <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={28} />
                   </div>
                   </Tooltip>
@@ -312,10 +303,7 @@ function RowMetricCard({ ind, row, rec, sc, scale, bundle }) {
       <div style={{ fontSize: "17px", fontWeight: 600, lineHeight: 1.2 }}>{row.label}</div>
 
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 7 }}>
-        <span className="tabular" style={{ fontSize: "23px", fontWeight: 500,
-              color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
-          {formatValue(rec?.v, ind)}
-        </span>
+        <Value v={rec?.v} ind={ind} size="23px" />
         <span style={{ fontSize: "14px", color: "var(--warm-grey)" }}>
           {rec ? rec.y : "no recent reading"}
         </span>

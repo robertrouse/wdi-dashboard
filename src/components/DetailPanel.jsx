@@ -1,7 +1,8 @@
 import KpiGlyph from "./KpiGlyph.jsx";
+import Value from "./Value.jsx";
 import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
-import { formatValue, splitValue } from "../lib/format.js";
+import { formatValue } from "../lib/format.js";
 import { score, delta, trendSlope, referenceFor, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
@@ -133,14 +134,8 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
 
                   <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "flex-end" }}>
                     <div style={{ textAlign: "right", minWidth: 0 }}>
-                      <div className="tabular"
-                           style={{ fontSize: "19px", fontWeight: 500, whiteSpace: "nowrap",
-                                    color: rec ? "var(--ink)" : "var(--neutral-grey)" }}>
-                        {splitValue(rec?.v, ind).num}
-                      </div>
+                      <Value v={rec?.v} ind={ind} size="19px" unitSize="13px" />
                       <div style={{ fontSize: "13px", color: "var(--warm-grey)", whiteSpace: "nowrap" }}>
-                        {splitValue(rec?.v, ind).unit}
-                        {splitValue(rec?.v, ind).unit && rec ? " · " : ""}
                         {rec ? rec.y : "—"}
                       </div>
                     </div>

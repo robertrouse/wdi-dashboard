@@ -37,13 +37,46 @@ export function plain(n, decimals = 1) {
   });
 }
 
+/**
+ * At most `sig` significant digits, with no trailing zeros.
+ *
+ * Used for the metrics already expressed as a percentage. A percentage is
+ * bounded at 100, so a fixed decimal count spends its precision at exactly the
+ * wrong end: "99.8%" and "96.1%" claim a tenth of a point that no survey
+ * supports and no reader uses, while "3.2%" genuinely needs its decimal.
+ * Significant digits scale with the number instead — 3.2, 32, 100.
+ *
+ *   3.24 -> "3.2"   96.13 -> "96"   0.14 -> "0.14"   219.9 -> "220"
+ *
+ * This rounds 99.8 up to 100, which is intended and is also the one case worth
+ * thinking twice about: on access to electricity it turns "nearly everyone"
+ * into "everyone", and that gap is real people.
+ */
+export function significant(n, sig = 2) {
+  if (!Number.isFinite(n) || n === 0) return "0";
+  const mag = Math.floor(Math.log10(Math.abs(n)));
+  const factor = 10 ** (sig - 1 - mag);
+  const rounded = Math.round(n * factor) / factor;
+  // Decimals come from the ROUNDED magnitude: rounding 99.8 to 100 moves it up
+  // an order, and asking for a decimal there would print "100.0".
+  const rmag = rounded === 0 ? 0 : Math.floor(Math.log10(Math.abs(rounded)));
+  return rounded.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: Math.max(0, sig - 1 - rmag),
+  });
+}
+
+/** Percentages get significant digits; everything else keeps its own precision. */
+function numberBody(v, ind, compactAlways = false) {
+  if (ind.scale === "compact" || compactAlways) return compact(v, ind.decimals);
+  if (ind.suffix === "%") return significant(v, 2);
+  return plain(v, ind.decimals);
+}
+
 /** The one entry point the UI uses. `ind` is an indicators.json record. */
 export function formatValue(v, ind, { compactAlways = false } = {}) {
   if (v == null || Number.isNaN(v)) return "—";
-  const body =
-    ind.scale === "compact" || compactAlways
-      ? compact(v, ind.decimals)
-      : plain(v, ind.decimals);
+  const body = numberBody(v, ind, compactAlways);
   return `${ind.prefix ?? ""}${body}${ind.suffix ? " " + ind.suffix : ""}`;
 }
 
@@ -68,7 +101,7 @@ export function formatDeltaPoints(cur, prev, ind) {
 /** Same as formatValue but split, so a layout can set the unit smaller. */
 export function splitValue(v, ind) {
   if (v == null || Number.isNaN(v)) return { num: "\u2014", unit: "" };
-  const body = ind.scale === "compact" ? compact(v, ind.decimals) : plain(v, ind.decimals);
+  const body = numberBody(v, ind);
   return { num: `${ind.prefix ?? ""}${body}`, unit: ind.suffix ?? "" };
 }
 
