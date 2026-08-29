@@ -5,7 +5,7 @@ import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import Tooltip, { IndicatorCard } from "./Tooltip.jsx";
 import { formatValue, unitGap } from "../lib/format.js";
-import { delta, referenceFor, benchmarkFor, scoreRow, shareOfWorld, worldRecord, PERF } from "../lib/kpi.js";
+import { delta, referenceFor, benchmarkFor, scoreRow, shareOfWorld, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
    The main view: countries (or regions) down the side, metrics across the top.
@@ -15,6 +15,11 @@ import { delta, referenceFor, benchmarkFor, scoreRow, shareOfWorld, worldRecord,
    units. The glyph matrix to its right answers "and everything else?" in a
    single normalized visual language. Neither could do the other's job.
    -------------------------------------------------------------------------- */
+
+/* The focus glyph and the gap beside it. Named because the year line has to
+   reserve exactly this much on its right to stay under the number. */
+const GLYPH_SIZE = 28;
+const GLYPH_GAP = 9;
 
 const PERF_COLOR = {
   [PERF.STRONG]: "var(--blue-maven)",
@@ -59,7 +64,6 @@ export default function Matrix({
 }) {
   const glyphInds = indicators;
   const regionView = rows.some((r) => r.kind === "region");
-  const peerNoun = regionView ? "regions" : "countries";
 
   /* A hairline where the category changes — Economy, People, Health & Education
      and so on. The glossary already orders the metrics by group, so the blocks
@@ -78,7 +82,7 @@ export default function Matrix({
               {regionView ? "Region" : "Country"}
             </th>
             <th style={{ ...th, textAlign: "right", minWidth: 178 }}>
-              <Tooltip content={<IndicatorCard ind={focus} extra={<BenchmarkLine ind={focus} scale={scales[focus.id]} peers={peerNoun} bundle={bundle} regionView={regionView} />} />}>
+              <Tooltip content={<IndicatorCard ind={focus} />}>
                 <span style={{ borderBottom: "1.5px dotted var(--blue-maven)" }}>
                   {focus.label}
                 </span>
@@ -133,16 +137,11 @@ export default function Matrix({
                     content={
                       <IndicatorCard
                         ind={ind}
-                        extra={
-                          <>
-                            <BenchmarkLine ind={ind} scale={scales[ind.id]} peers={peerNoun} bundle={bundle} regionView={regionView} />
-                            {!isFocus && (
-                              <div style={{ fontSize: "14.5px", fontWeight: 500, color: "var(--blue-maven)", marginBottom: 6 }}>
-                                Click to make this the focus metric
-                              </div>
-                            )}
-                          </>
-                        }
+                        extra={!isFocus && (
+                          <div style={{ fontSize: "14.5px", fontWeight: 500, color: "var(--blue-maven)", marginBottom: 6 }}>
+                            Click to make this the focus metric
+                          </div>
+                        )}
                       />
                     }
                   >
@@ -226,20 +225,27 @@ export default function Matrix({
                       sit on the same axis instead of the glyph riding high
                       above a caption that was never about it. Same arrangement
                       the detail modal already uses. */}
+                  {/* The glyph sits on the NUMBER's line, not on the number
+                      plus its year — centring it on the whole stack pushed it
+                      below the figure it belongs to. The year then needs the
+                      glyph's own width out of its right margin to stay under
+                      the number rather than under the circle. */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end",
-                                gap: 9, whiteSpace: "nowrap" }}>
-                    <div style={{ textAlign: "right" }}>
-                      <Value v={rec?.v} ind={focus} />
-                      {rec && (
-                        <div style={{ fontSize: "13px", lineHeight: 1.2, marginTop: 1,
-                                      color: stale ? "var(--blaze)" : "var(--warm-grey)" }}>
-                          {rec.y}{stale ? " · older reading" : ""}
-                        </div>
-                      )}
-                    </div>
-                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={28} />
+                                gap: GLYPH_GAP, whiteSpace: "nowrap" }}>
+                    <Value v={rec?.v} ind={focus} />
+                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={GLYPH_SIZE} />
                   </div>
                   </Tooltip>
+                  {/* Outside the Tooltip: its anchor is an inline-flex box, so
+                      anything left inside becomes a flex SIBLING of the value
+                      row and lands beside the glyph instead of beneath it. */}
+                  {rec && (
+                    <div style={{ fontSize: "13px", lineHeight: 1.2, marginTop: 1,
+                                  textAlign: "right", marginRight: GLYPH_SIZE + GLYPH_GAP,
+                                  color: stale ? "var(--blaze)" : "var(--warm-grey)" }}>
+                      {rec.y}{stale ? " · older reading" : ""}
+                    </div>
+                  )}
                 </td>
 
                 <td style={{ ...td, textAlign: "right" }}>
@@ -362,57 +368,3 @@ function RowMetricCard({ ind, row, rec, sc, bm, scale, bundle }) {
   );
 }
 
-/* What a column's glyphs are actually measured against.
-   Worth stating on the header because it is the one number that explains every
-   mark in the column, and until now it was only reachable by hovering an
-   individual cell. */
-function BenchmarkLine({ ind, scale, peers, bundle, regionView }) {
-  const isTarget = ind.direction === "band" && ind.targetBand;
-  const world = worldRecord(bundle, ind);
-  // A regional subtotal is never scored against the countries; totals are not
-  // scored at all. Both are stated here so the column says what it did.
-  const regionsVsWorld = !isTarget && ind.aggKind !== "total"
-    && (ind.direction === "up" || ind.direction === "down") && world;
-
-  const line = { fontSize: "15px", color: "var(--ink-soft)", marginBottom: 4 };
-  const strong = { fontWeight: 600, color: "var(--ink)" };
-
-  return (
-    <div style={{ marginBottom: 8 }}>
-      {isTarget ? (
-        <div style={line}>
-          Target{" "}
-          <span className="tabular" style={strong}>{formatValue(ind.target, ind)}</span>
-          <span style={{ color: "var(--warm-grey)" }}> · every row, country or region</span>
-        </div>
-      ) : (
-        <>
-          {!regionView && scale?.benchmark != null && (
-            <div style={line}>
-              Countries:{" "}
-              <span className="tabular" style={strong}>{formatValue(scale.benchmark, ind)}</span>
-              <span style={{ color: "var(--warm-grey)" }}>
-                {" "}— the median of the {scale.n} {peers} on screen
-              </span>
-            </div>
-          )}
-          <div style={line}>
-            {regionView ? "Regions:" : "Regional subtotals:"}{" "}
-            {regionsVsWorld ? (
-              <>
-                <span className="tabular" style={strong}>{formatValue(world.v, ind)}</span>
-                <span style={{ color: "var(--warm-grey)" }}> — the World aggregate</span>
-              </>
-            ) : (
-              <span style={{ color: "var(--warm-grey)" }}>
-                {ind.aggKind === "total"
-                  ? "no verdict — a region is part of the world total, so the hover gives its share instead"
-                  : "no verdict — nothing here is better or worse"}
-              </span>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
