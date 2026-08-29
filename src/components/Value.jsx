@@ -1,4 +1,4 @@
-import { splitValue } from "../lib/format.js";
+import { splitValue, unitGap } from "../lib/format.js";
 
 /* --------------------------------------------------------------------------
    A number and its unit.
@@ -28,10 +28,10 @@ export default function Value({
     <span style={{ whiteSpace: "nowrap", color: missing ? "var(--neutral-grey)" : "var(--ink)" }}>
       <span className="tabular" style={{ fontSize: size, fontWeight: weight }}>{num}</span>
       {unit && (isPct ? (
-        // Same size, same weight, same tabular face — only the hair space
-        // separates it from the digits.
+        // Same size, same weight, same tabular face — closed up against the
+        // digits — unitGap() returns nothing for a percent sign.
         <span className="tabular" style={{ fontSize: size, fontWeight: weight }}>
-          {" "}{unit}
+          {unitGap(unit)}{unit}
         </span>
       ) : (
         <span style={{ fontSize: unitSize, fontWeight: 400, color: "var(--warm-grey)", marginLeft: 4 }}>

@@ -46,7 +46,7 @@ export default function DeltaArrow({ d, ind, showLabel = true, size = 20, fontSi
     // Already a percentage: report points.
     const digits = mag >= 10 ? 1 : ind.decimals;
     shown = Number(mag.toFixed(digits));
-    text = `${sign}${mag.toFixed(digits)} pts`;
+    text = `${sign}${mag.toFixed(digits)} pts`;
   } else if (d.pct == null || d.p === 0 || (d.p != null && d.v != null && Math.sign(d.p) !== Math.sign(d.v))) {
     // Percent change needs a stable, same-signed baseline. Net migration
     // crosses zero, and "+150%" for a swing from −100k to +50k is not a fact

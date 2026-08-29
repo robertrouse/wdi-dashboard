@@ -4,7 +4,7 @@ import Value from "./Value.jsx";
 import Sparkline from "./Sparkline.jsx";
 import DeltaArrow from "./DeltaArrow.jsx";
 import Tooltip, { IndicatorCard } from "./Tooltip.jsx";
-import { formatValue } from "../lib/format.js";
+import { formatValue, unitGap } from "../lib/format.js";
 import { score, delta, referenceFor, PERF } from "../lib/kpi.js";
 
 /* --------------------------------------------------------------------------
@@ -35,7 +35,7 @@ function perfWord(perf, ind, scale, value) {
      directions both turning red looks like a bug until you do. Name the side. */
   if (ind.direction === "band" && ind.targetBand && value != null) {
     const [lo, hi] = ind.targetBand;
-    const band = `${lo}–${hi}${ind.suffix ? " " + ind.suffix : ""}`;
+    const band = `${lo}–${hi}${ind.suffix ? unitGap(ind.suffix) + ind.suffix : ""}`;
     if (value >= lo && value <= hi) return `On target · within ${band}`;
     return value < lo ? `Below the ${band} target band` : `Above the ${band} target band`;
   }

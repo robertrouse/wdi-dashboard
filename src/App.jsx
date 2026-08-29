@@ -31,7 +31,7 @@ const PRESETS = [
   { id: "g20",   label: "G20",                           hint: "G20 member states" },
 ];
 
-const DEFAULT_PRESET = "gdp5";
+const DEFAULT_PRESET = "g20";
 
 /** The top N countries per region on `key`, flattened. */
 function topPerRegion(bundle, key, n = PER_REGION) {
@@ -73,9 +73,13 @@ export default function App() {
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((b) => {
         setBundle(b);
-        // The default set is derived from the data, so it cannot be a static
-        // constant — it is seeded once the bundle arrives.
-        setSelected(topPerRegion(b, "gdp"));
+        // Seeded once the bundle arrives so the codes can be checked against
+        // what the data actually carries. G20 is the opening set: it is the
+        // group this audience already argues about, and its lopsidedness —
+        // six European members, one African — is itself the argument for
+        // changing the comparison set and watching every glyph re-score.
+        const known = new Set(b.countries.map((c) => c.c));
+        setSelected(G20.filter((c) => known.has(c)));
       })
       .catch((e) => setErr(e.message));
   }, []);

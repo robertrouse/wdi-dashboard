@@ -66,6 +66,17 @@ export function significant(n, sig = 2) {
   });
 }
 
+/**
+ * What separates a number from its unit.
+ *
+ * The percent sign binds directly to the digits — "3.2%", not "3.2 %". It is a
+ * symbol rather than a word, US convention sets it closed up, and it is the
+ * same reason it is set at the number's own size: "3.2%" is one token. Word
+ * units ("yrs", "per 1,000", "t CO2e") are separate words and take a thin
+ * space, which keeps them attached without crowding the figure.
+ */
+export const unitGap = (suffix) => (suffix === "%" ? "" : "\u2009");
+
 /** Percentages get significant digits; everything else keeps its own precision. */
 function numberBody(v, ind, compactAlways = false) {
   if (ind.scale === "compact" || compactAlways) return compact(v, ind.decimals);
@@ -77,7 +88,7 @@ function numberBody(v, ind, compactAlways = false) {
 export function formatValue(v, ind, { compactAlways = false } = {}) {
   if (v == null || Number.isNaN(v)) return "—";
   const body = numberBody(v, ind, compactAlways);
-  return `${ind.prefix ?? ""}${body}${ind.suffix ? " " + ind.suffix : ""}`;
+  return `${ind.prefix ?? ""}${body}${ind.suffix ? unitGap(ind.suffix) + ind.suffix : ""}`;
 }
 
 /** Percent change, formatted for the delta column. Returns null when undefined. */
