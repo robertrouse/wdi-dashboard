@@ -109,6 +109,26 @@ export default function FilterPanel({
           Done
         </button>
       </div>
+      {/* First, because it is the control that changes the most and the one
+          a reader reaches for again and again — everything else in here is
+          set once per session. The column headers set it too, but only for
+          metrics currently in the matrix. */}
+      <div style={S.section}>
+        <span style={S.h}>Focus metric</span>
+        <select value={focusId} onChange={(e) => setFocus(e.target.value)}
+          style={{
+            width: "100%", padding: "10px 12px", fontSize: "16px", fontWeight: 500,
+            border: "1.5px solid var(--blue-maven)", borderRadius: 8,
+            background: "var(--white)", color: "var(--blue-raven)", cursor: "pointer",
+          }}>
+          {indicators.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
+        </select>
+        <p style={{ fontSize: "13.5px", color: "var(--warm-grey)", margin: "8px 0 0", lineHeight: 1.4 }}>
+          The focus metric gets the value, change and trend columns. All other
+          metrics stay visible as glyphs.
+        </p>
+      </div>
+
       <div style={S.section}>
         <span style={S.h}>View level</span>
         <Radio name="view" value="country" checked={view === "country"} onChange={setView}
@@ -163,21 +183,6 @@ export default function FilterPanel({
         </div>
       </div>
 
-      <div style={S.section}>
-        <span style={S.h}>Focus metric</span>
-        <select value={focusId} onChange={(e) => setFocus(e.target.value)}
-          style={{
-            width: "100%", padding: "10px 12px", fontSize: "16px", fontWeight: 500,
-            border: "1.5px solid var(--blue-maven)", borderRadius: 8,
-            background: "var(--white)", color: "var(--blue-raven)", cursor: "pointer",
-          }}>
-          {indicators.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
-        </select>
-        <p style={{ fontSize: "13.5px", color: "var(--warm-grey)", margin: "8px 0 0", lineHeight: 1.4 }}>
-          The focus metric gets the value, change and trend columns. All other
-          metrics stay visible as glyphs.
-        </p>
-      </div>
 
       <div style={S.section}>
         <span style={S.h}>Metrics in the matrix</span>
