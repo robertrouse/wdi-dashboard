@@ -117,19 +117,37 @@ export default function FilterPanel({
       >
         <span style={{ fontSize: "19px", fontWeight: 600 }}>Filters</span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Icon only. With no label the state has to be carried by the mark
+            itself — a tick on success — and by the accessible name, which is
+            the only thing a screen reader has to go on here. */}
         <button
           onClick={copyLink}
-          title="Copy a link to this exact view — countries, metric, filters and all"
+          aria-label={copied ? "Link copied" : copyFailed ? "Copy failed" : "Copy a link to this view"}
+          title={copied ? "Link copied"
+               : copyFailed ? "The browser refused clipboard access"
+               : "Copy a link to this exact view — countries, metric, filters and all"}
           style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 34, height: 34, flexShrink: 0,
             background: copied ? "var(--blue-maven)" : "transparent",
-            border: `1.5px solid ${copied ? "var(--blue-maven)" : "var(--rule-strong)"}`,
-            color: copied ? "var(--white)" : "var(--ink)",
-            borderRadius: 8, padding: "6px 12px", fontSize: "15px",
-            cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-            transition: "background .12s ease, color .12s ease",
+            border: `1.5px solid ${copied ? "var(--blue-maven)"
+                                 : copyFailed ? "var(--red-cerise)" : "var(--rule-strong)"}`,
+            color: copied ? "var(--white)" : copyFailed ? "var(--red-cerise)" : "var(--ink)",
+            borderRadius: 8, padding: 0, cursor: "pointer",
+            transition: "background .12s ease, color .12s ease, border-color .12s ease",
           }}
         >
-          {copied ? "Copied" : copyFailed ? "Copy failed" : "Copy link"}
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {copied ? (
+              <path d="M20 6 9 17l-5-5" />
+            ) : (
+              <>
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </>
+            )}
+          </svg>
         </button>
         <button
           onClick={onClose}

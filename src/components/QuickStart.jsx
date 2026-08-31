@@ -102,9 +102,30 @@ export default function QuickStart({ onClose }) {
           boxShadow: "0 24px 70px rgba(10,16,68,.35)",
         }}
       >
-        <div style={{ background: "var(--blue-raven)", color: "var(--white)", padding: "22px 28px" }}>
+        <div style={{ background: "var(--blue-raven)", color: "var(--white)",
+                      padding: "22px 28px", position: "relative" }}>
+          {/* Escape, the backdrop and "Start exploring" all dismiss this, but a
+              modal with no visible way out still reads as a trap on first
+              sight — and first sight is the only time this one is shown. */}
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            title="Close"
+            style={{
+              position: "absolute", top: 14, right: 14,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 32, height: 32, padding: 0,
+              background: "transparent", border: "none", borderRadius: 8,
+              color: "var(--blue-ice)", cursor: "pointer", lineHeight: 0,
+            }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
           <div className="eyebrow" style={{ color: "var(--blue-ice)" }}>Quick start</div>
-          <h2 id="qs-title" style={{ fontSize: "27px", lineHeight: 1.15, marginTop: 2 }}>
+          <h2 id="qs-title" style={{ fontSize: "27px", lineHeight: 1.15, marginTop: 2, paddingRight: 34 }}>
             Fifteen metrics, one scale
           </h2>
           <p style={{ margin: "8px 0 0", fontSize: "16px", fontWeight: 300, color: "var(--cool-grey)", lineHeight: 1.4 }}>
