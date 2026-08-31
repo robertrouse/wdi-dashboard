@@ -7,6 +7,7 @@ import FilterPanel from "./components/FilterPanel.jsx";
 import QuickStart, { hasSeenQuickStart } from "./components/QuickStart.jsx";
 import { buildScalesFromRows, regionRecord, worldRecord, benchmarkFor, scoreRow, PERF } from "./lib/kpi.js";
 import { DATASET_URL } from "./lib/sources.js";
+import { readUrlState, writeUrlState } from "./lib/urlState.js";
 
 /* Country presets.
 
@@ -33,6 +34,13 @@ const PRESETS = [
 ];
 
 const DEFAULT_PRESET = "g20";
+
+/** The codes a named preset stands for, resolved against the bundle. */
+function presetCodes(bundle, id) {
+  const known = new Set(bundle.countries.map((c) => c.c));
+  if (id === "g20") return G20.filter((c) => known.has(c));
+  return topPerRegion(bundle, id === "pop5" ? "pop" : "gdp");
+}
 
 /** The top N countries per region on `key`, flattened. */
 function topPerRegion(bundle, key, n = PER_REGION) {
@@ -63,6 +71,10 @@ export default function App() {
   // Read once at mount rather than on every render — localStorage access can
   // throw, and the guard lives in the component that owns the key.
   const [quickStart, setQuickStart] = useState(() => !hasSeenQuickStart());
+  // Set once the incoming URL has been applied. The writer below stays quiet
+  // until then, or it would overwrite a shared link with the defaults before
+  // anyone had a chance to read it.
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     // no-cache forces a revalidation against the server's ETag rather than
@@ -74,16 +86,51 @@ export default function App() {
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((b) => {
         setBundle(b);
-        // Seeded once the bundle arrives so the codes can be checked against
-        // what the data actually carries. G20 is the opening set: it is the
-        // group this audience already argues about, and its lopsidedness —
-        // six European members, one African — is itself the argument for
-        // changing the comparison set and watching every glyph re-score.
-        const known = new Set(b.countries.map((c) => c.c));
-        setSelected(G20.filter((c) => known.has(c)));
+
+        /* Everything the URL carries is applied here rather than at mount,
+           because every field has to be checked against the data that just
+           arrived — a shared link can name a country the Bank has since
+           stopped publishing, and that should cost one field, not the page.
+
+           G20 is the opening set when the link says nothing: it is the group
+           this audience already argues about, and its lopsidedness — six
+           European members, one African — is itself the argument for changing
+           the comparison set and watching every glyph re-score. */
+        const url = readUrlState(b, PRESETS.map((p) => p.id));
+
+        if (url.view) setView(url.view);
+        if (url.metric) setFocusId(url.metric);
+        if (url.show) setActiveIndicatorIds(url.show);
+        if (url.weak) setOnlyWeak(true);
+
+        if (url.countries) {
+          setSelected(url.countries);
+          setActivePreset(null);          // an edited set is nobody's preset
+        } else {
+          const preset = url.set ?? DEFAULT_PRESET;
+          setActivePreset(preset);
+          setSelected(presetCodes(b, preset));
+        }
+        setHydrated(true);
       })
       .catch((e) => setErr(e.message));
   }, []);
+
+  // The address bar mirrors the view, so any state worth looking at is a state
+  // worth sending someone. replaceState, so filter toggles do not pile up in
+  // the back button.
+  useEffect(() => {
+    if (!hydrated || !bundle) return;
+    writeUrlState({
+      view,
+      metric: focusId,
+      set: activePreset,
+      countries: selected,
+      show: activeIndicatorIds,
+      weak: onlyWeak,
+      indicatorCount: bundle.indicators.length,
+    });
+  }, [hydrated, bundle, view, focusId, activePreset, selected, activeIndicatorIds, onlyWeak]);
 
   // Escape backs out one layer at a time: the detail modal sits above the
   // filter drawer, so it is the one that closes first.
@@ -266,8 +313,7 @@ export default function App() {
 
   function applyPreset(id) {
     setActivePreset(id);
-    if (id === "g20") return setSelected(G20.filter((c) => byCode[c]));
-    setSelected(topPerRegion(bundle, id === "pop5" ? "pop" : "gdp"));
+    setSelected(presetCodes(bundle, id));
   }
 
   if (err) return <Fatal msg={`Could not load the data bundle (${err}).`} />;

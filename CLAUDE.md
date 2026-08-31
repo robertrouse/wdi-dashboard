@@ -183,6 +183,31 @@ Source material lives in the parent folder `../`:
    data-only change (invariant 7). Rows without a reference keep the plain
    self-scaled trace and single performance colour they had before.
 
+## The view lives in the URL
+
+`src/lib/urlState.js`. The query string carries view level, focus metric,
+country set, metric subset and the attention filter, so a view can be pasted
+into a message. Two rules keep links short: **defaults are omitted** (a clean
+load leaves a clean URL) and **the country set is a preset where it can be**
+(`set=g20`, not nineteen ISO codes — the explicit `countries=` list only appears
+once the reader has edited the selection).
+
+Three things that are load-bearing:
+
+- **The URL is applied when the BUNDLE lands, not at mount.** Every field is
+  validated against the data that just arrived, so a stale link costs one field
+  rather than the page. A bad metric, an unknown country code and a nonsense
+  preset each fall back independently, and the URL is then rewritten to the
+  cleaned version — a stale link self-heals.
+- **The writer waits for `hydrated`.** Without that flag the first render would
+  overwrite an incoming link with the defaults before it had been read.
+- **`replaceState`, never `pushState`.** These are filter toggles, not
+  navigation; pushing every checkbox turns the back button into an undo stack
+  nobody asked for.
+
+Commas are written literally rather than as `%2C` — legal in a query string, and
+the difference between a link somebody will paste and one they will not.
+
 ## Attribution and source links
 
 Every figure is the World Bank's measurement, and a reader must be able to get

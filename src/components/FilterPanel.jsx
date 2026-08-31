@@ -70,6 +70,25 @@ export default function FilterPanel({
   onClose,
 }) {
   const [q, setQ] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  /* The address bar already carries the view, but nobody looks there. The
+     button is the part that makes it a feature. Clipboard access can be
+     refused outright (insecure context, permissions policy), and the honest
+     fallback is to say so rather than to claim a copy that did not happen —
+     the URL is still there to select by hand. */
+  const [copyFailed, setCopyFailed] = useState(false);
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setCopyFailed(false);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 3000);
+    }
+  };
   const matches = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return [];
@@ -97,6 +116,21 @@ export default function FilterPanel({
         }}
       >
         <span style={{ fontSize: "19px", fontWeight: 600 }}>Filters</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button
+          onClick={copyLink}
+          title="Copy a link to this exact view — countries, metric, filters and all"
+          style={{
+            background: copied ? "var(--blue-maven)" : "transparent",
+            border: `1.5px solid ${copied ? "var(--blue-maven)" : "var(--rule-strong)"}`,
+            color: copied ? "var(--white)" : "var(--ink)",
+            borderRadius: 8, padding: "6px 12px", fontSize: "15px",
+            cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+            transition: "background .12s ease, color .12s ease",
+          }}
+        >
+          {copied ? "Copied" : copyFailed ? "Copy failed" : "Copy link"}
+        </button>
         <button
           onClick={onClose}
           aria-label="Close filters"
@@ -108,7 +142,13 @@ export default function FilterPanel({
         >
           Done
         </button>
+        </div>
       </div>
+      {copyFailed && (
+        <p style={{ fontSize: "14px", color: "var(--warm-grey)", margin: "0 0 14px", lineHeight: 1.4 }}>
+          The browser refused clipboard access — the link is in the address bar.
+        </p>
+      )}
       {/* First, because it is the control that changes the most and the one
           a reader reaches for again and again — everything else in here is
           set once per session. The column headers set it too, but only for

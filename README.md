@@ -247,4 +247,19 @@ PLAN.md / CHECKPOINT.md     design decisions and build state
   plain self-scaled trace. Sparkline height is never comparable between rows in
   any case — only shape, colour and the crossings are.
 
+## Sharing a view
+
+The URL carries the view: the country set, the focus metric, which metrics are
+in the matrix, the view level and the attention filter. Change anything and the
+address bar follows, so a link is a view. **Copy link** in the filter drawer puts
+it on the clipboard.
+
+```
+?view=region&metric=u5mort&set=pop5&show=gdp,life,u5mort&weak=1
+```
+
+Defaults are left out, so an untouched dashboard has a clean URL. A link that
+names something the data no longer carries — a retired country code, a renamed
+metric — falls back on that field alone and rewrites itself to the cleaned form.
+
 Source: World Bank, World Development Indicators (CC BY 4.0).
