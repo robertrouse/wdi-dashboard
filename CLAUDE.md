@@ -402,11 +402,25 @@ Repo: <https://github.com/robertrouse/wdi-dashboard>
      labelled "2024 vintage" for that reason — check them against the CSV, not
      against a fresh API pull.
 
-2. **The monthly schedule has not fired yet.** Every green run so far was a
-   `workflow_dispatch` or a push. They take the same path, but GitHub can delay
-   or drop `schedule` events on low-traffic repos. The repo is only days old,
-   so the first scheduled run is **1 September 2026, 06:00 UTC** — nothing to
-   diagnose before then. Check with `gh run list --event schedule`.
+2. **CLOSED (2026-09-01) — the schedule fired, and it caught a real bug.**
+   The first scheduled run (`33500523219`) failed at the sanity gate. See the
+   apostrophe trap below; fixed in `0a34792` and verified by a dispatch that
+   went green through commit and redeploy.
+
+   One thing it exposed that is still open for a decision: **the "commit only
+   on change" safeguard never actually holds.** `generated` is a date stamp
+   that differs on every run, so `git diff --quiet` is never quiet and the job
+   commits and redeploys monthly whether or not a number moved. The 1 September
+   commit `261e642` is byte-identical to its parent once `generated` is
+   removed — 682,079 bytes either side, not one value changed.
+
+   That is not obviously wrong: `App.jsx` prints "Bundle generated <date>" in
+   the attribution line, so a monthly commit is what keeps that date honest.
+   But README safeguard 2 currently claims the history is "a log of real data
+   revisions rather than a log of cron firings", and that claim is false as
+   written. Either compare ignoring `generated` and let the footer date go
+   stale between revisions, or keep the behaviour and fix the README. Do not
+   leave both as they are.
 
 3. **Type reviewed in Kanit at desktop width — CLOSED for that case.**
    Verified live in Chrome: Kanit loads from the Google Fonts CDN, weights
@@ -462,7 +476,7 @@ pipeline change. Known-good values from the CSV seed (2024 vintage):
 USA GDP/capita 84,534.0408 · IND population 1,450,935,791 ·
 JPN inflation 2.7385 · NGA life expectancy 54.4620 · BRA homicides 19.2753.
 
-## Two CI traps already hit — do not reintroduce them
+## Three CI traps already hit — do not reintroduce them
 
 - **`actions/checkout` in a `workflow_call` defaults to the caller's SHA**,
   which for the refresh job is the commit *before* its own data commit.
@@ -471,6 +485,27 @@ JPN inflation 2.7385 · NGA life expectancy 54.4620 · BRA homicides 19.2753.
 - **A commit pushed with `GITHUB_TOKEN` does not trigger other workflows.**
   That is why `refresh-data.yml` calls `deploy.yml` explicitly instead of
   relying on its own push.
+- **The sanity gate is a QUOTED heredoc, not `node -e '...'` — keep it that
+  way.** It used to be `node -e` wrapping the whole script in shell single
+  quotes. A comment added in `9fe464a` read "what a REGION row's sparkline is
+  drawn against", and that one apostrophe closed the string: the rest of the
+  script fell back to bash, which took the next line's `//` for a command and
+  exited 126 with `//: Is a directory`. Nothing about the message points at
+  quoting, and the JavaScript is fine — it never ran.
+
+  It hid for three days because every run in between was `deploy.yml` on a
+  push. `refresh-data.yml` is the only thing that executes the gate, and it had
+  not run since the bug landed, so the monthly cron was the first to touch it.
+  **A workflow that only runs monthly is only tested monthly** — after editing
+  `refresh-data.yml`, dispatch it rather than assuming a green push means
+  anything.
+
+  `node - <<'JS'` interprets nothing at all, so apostrophes, backticks and `$`
+  are literal, and `node -` still resolves `require("./…")` against the working
+  directory exactly as `node -e` did. To test the gate without waiting for CI,
+  extract the `run:` block from the YAML and execute it with `bash -e` — that
+  is the runner's own path. Running the JS as a *file* is not the same test:
+  it changes how `require("./…")` resolves.
 
 ## Working style
 
