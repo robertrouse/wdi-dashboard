@@ -7,17 +7,14 @@ import { DATASET_URL } from "../lib/sources.js";
 /* --------------------------------------------------------------------------
    First-run quick start.
 
-   Terse on purpose. The chapter this dashboard comes from praises the original
-   for being figure-out-able without instructions, so a tutorial that has to
-   explain the whole thing would be an admission of failure. Two points — how
-   to read a glyph, and when it withholds a verdict — plus one line on the
-   controls. Everything else stays discoverable on hover.
+   Two blocks: what the icons mean, and what is clickable. Phrases, not
+   sentences — a reader dismissing a modal to get at a dashboard does not read
+   prose, and the chapter this dashboard comes from praises the original for
+   being figure-out-able without instructions. Anything that needs a paragraph
+   belongs in a hover card or in "Notes on reading this", not here.
 
-   Each point is illustrated by the real KpiGlyph rather than a picture of one,
-   so what the reader is shown here is literally what they will meet in the
-   table. A step whose glyph does not demonstrate its sentence does not belong:
-   the units point was cut for exactly that reason, since it was illustrated by
-   the dashed "no data" circle, which has nothing to do with units.
+   The icon rows use the real KpiGlyph rather than a picture of one, so what is
+   shown here is literally what the reader meets in the table.
 
    Shown once per browser. localStorage can throw outright (Safari private
    mode, blocked site data), so every access is guarded and a failure just
@@ -42,20 +39,23 @@ function markSeen() {
   }
 }
 
-const STEPS = [
-  {
-    glyphs: [
-      { perf: PERF.STRONG, deviation: 0.8 },
-      { perf: PERF.WEAK, deviation: -0.8 },
-    ],
-    title: "The circle is the comparison",
-    body: "Filled above the midline, in blue, means better than the benchmark; filled below, in cerise, means worse. How much is filled is how far. Every metric uses this one scale, which is what lets a $29T economy and a 2.1% inflation rate be read side by side.",
-  },
-  {
-    glyphs: [{ perf: PERF.NEUTRAL, deviation: -0.6 }],
-    title: "Grey means neutral",
-    body: "Population and urbanisation are filled the same way — position is still a fact — but they carry no colour, because being more populous than your neighbours is neither good nor bad.",
-  },
+/* Ordered better → near → worse so the first three read as one scale. Amber
+   earns its row despite the word budget: it is a colour the reader meets
+   constantly, and without it "blue = above the line" implies every above-the-
+   line glyph is blue, which is not true. */
+const ICONS = [
+  { glyphs: [{ perf: PERF.STRONG,  deviation: 0.8 }],  text: "Above the line — better than the benchmark" },
+  { glyphs: [{ perf: PERF.MID,     deviation: 0.2 }],  text: "Amber — close to it" },
+  { glyphs: [{ perf: PERF.WEAK,    deviation: -0.8 }], text: "Below — worse" },
+  { glyphs: [{ perf: PERF.NEUTRAL, deviation: 0.7 }],  text: "Grey — neither better nor worse" },
+  { glyphs: [{ perf: PERF.NONE,    deviation: 0 }],    text: "No recent reading" },
+];
+
+const CLICKS = [
+  ["Hover a column heading", "what the metric means"],
+  ["Click it", "moves it into the value columns"],
+  ["Click a row", "that country in full"],
+  ["Filters", "change countries, metrics, view"],
 ];
 
 export default function QuickStart({ onClose }) {
@@ -97,13 +97,13 @@ export default function QuickStart({ onClose }) {
         aria-labelledby="qs-title"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "var(--white)", borderRadius: 14, maxWidth: 620, width: "100%",
+          background: "var(--white)", borderRadius: 14, maxWidth: 540, width: "100%",
           maxHeight: "88vh", overflowY: "auto", outline: "none",
           boxShadow: "0 24px 70px rgba(10,16,68,.35)",
         }}
       >
         <div style={{ background: "var(--blue-raven)", color: "var(--white)",
-                      padding: "22px 28px", position: "relative" }}>
+                      padding: "18px 28px 20px", position: "relative" }}>
           {/* Escape, the backdrop and "Start exploring" all dismiss this, but a
               modal with no visible way out still reads as a trap on first
               sight — and first sight is the only time this one is shown. */}
@@ -124,56 +124,46 @@ export default function QuickStart({ onClose }) {
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
-          <div className="eyebrow" style={{ color: "var(--blue-ice)" }}>Quick start</div>
-          <h2 id="qs-title" style={{ fontSize: "27px", lineHeight: 1.15, marginTop: 2, paddingRight: 34 }}>
-            Fifteen metrics, one scale
+          <h2 id="qs-title" style={{ fontSize: "26px", lineHeight: 1.15, paddingRight: 34 }}>
+            Quick start
           </h2>
-          <p style={{ margin: "8px 0 0", fontSize: "16px", fontWeight: 300, color: "var(--cool-grey)", lineHeight: 1.4 }}>
-            These indicators are measured in dollars, percentages, years, rates and
-            raw counts. Here is how they are made comparable.
-          </p>
         </div>
 
-        <div style={{ padding: "6px 28px 4px" }}>
-          {STEPS.map((s) => (
-            <div
-              key={s.title}
-              style={{
-                display: "flex", gap: 16, alignItems: "flex-start",
-                padding: "18px 0", borderBottom: "1px solid var(--rule)",
-              }}
-            >
-              {/* Fixed width so a one-glyph row and a two-glyph row keep their
-                  titles on the same left edge. */}
-              <div style={{ flexShrink: 0, paddingTop: 2, width: 80, display: "flex", gap: 10 }}>
-                {s.glyphs.map((g, i) => (
-                  <KpiGlyph key={i} perf={g.perf} deviation={g.deviation} size={34} />
-                ))}
+        <div style={{ padding: "20px 28px 4px" }}>
+          <div className="eyebrow" style={{ color: "var(--blue-maven)" }}>How to read the icons</div>
+          <div style={{ marginTop: 10 }}>
+            {ICONS.map((r) => (
+              <div key={r.text} style={{ display: "flex", alignItems: "center", gap: 14, padding: "7px 0" }}>
+                <span style={{ flexShrink: 0, display: "inline-flex", width: 32 }}>
+                  {r.glyphs.map((g, i) => (
+                    <KpiGlyph key={i} perf={g.perf} deviation={g.deviation} size={30} />
+                  ))}
+                </span>
+                <span style={{ fontSize: "17px", lineHeight: 1.3 }}>{r.text}</span>
               </div>
-              <div>
-                <div style={{ fontSize: "18px", fontWeight: 600, lineHeight: 1.25 }}>{s.title}</div>
-                <div style={{ fontSize: "16px", lineHeight: 1.5, color: "var(--ink-soft)", marginTop: 3 }}>
-                  {s.body}
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <div style={{ fontSize: "16px", color: "var(--warm-grey)", marginTop: 8 }}>
+            More fill = further from the benchmark.
+          </div>
 
-          <p style={{ fontSize: "16px", lineHeight: 1.5, color: "var(--ink-soft)", padding: "16px 0 4px" }}>
-            <strong>Hover a column heading</strong> for what a metric means and how to read
-            it. <strong>Click one</strong> to move it into the value, change and trend
-            columns. <strong>Click a row</strong> for that country in full. Everything else
-            lives under <strong>Filters</strong> — including which countries you are
-            comparing, which moves every benchmark on screen.
-          </p>
-          <p style={{ fontSize: "15px", lineHeight: 1.5, color: "var(--warm-grey)",
-                      borderTop: "1px solid var(--rule)", padding: "12px 0 2px" }}>
-            All figures are the World Bank's{" "}
+          <div className="eyebrow" style={{ color: "var(--blue-maven)", marginTop: 26 }}>What to click</div>
+          <div style={{ marginTop: 8 }}>
+            {CLICKS.map(([action, result]) => (
+              <div key={action} style={{ display: "flex", gap: 10, padding: "6px 0", fontSize: "17px", lineHeight: 1.3 }}>
+                <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{action}</span>
+                <span style={{ color: "var(--warm-grey)" }}>{result}</span>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ fontSize: "15px", lineHeight: 1.45, color: "var(--warm-grey)",
+                      borderTop: "1px solid var(--rule)", margin: "20px 0 0", padding: "12px 0 2px" }}>
+            World Bank{" "}
             <a href={DATASET_URL} target="_blank" rel="noopener noreferrer"
                style={{ color: "var(--blue-maven)" }}>
               World Development Indicators
-            </a>{" "}(CC&nbsp;BY&nbsp;4.0) — open any row to reach the source page for that
-            country and metric.
+            </a>{" "}· CC&nbsp;BY&nbsp;4.0
           </p>
         </div>
 
@@ -186,7 +176,7 @@ export default function QuickStart({ onClose }) {
               cursor: "pointer", fontFamily: "inherit",
             }}
           >
-            Start exploring
+            Got it
           </button>
         </div>
       </div>
