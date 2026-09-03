@@ -39,14 +39,21 @@ function markSeen() {
   }
 }
 
-/* Ordered better → near → worse so the first three read as one scale. Amber
-   earns its row despite the word budget: it is a colour the reader meets
-   constantly, and without it "blue = above the line" implies every above-the-
-   line glyph is blue, which is not true. */
+/* Ordered better → near → worse so the first three read as one scale. The
+   middle row earns its place despite the word budget: without it, "above the
+   line, blue" implies every above-the-line glyph is blue, which is false.
+
+   Colour is named in plain words — blue, yellow, red — not by the brand names
+   for these tokens (Blue Maven, Golden Blaze, Red Cerise). A reader is being
+   told what they are looking at, not what it is called in the brand book.
+
+   Position is named alongside colour on the two rows that have one. Colour is
+   never the only channel in the dashboard itself, and an explanation that
+   dropped "above/below the line" would quietly make it the only channel here. */
 const ICONS = [
-  { glyphs: [{ perf: PERF.STRONG,  deviation: 0.8 }],  text: "Above the line — better than the benchmark" },
-  { glyphs: [{ perf: PERF.MID,     deviation: 0.2 }],  text: "Amber — close to it" },
-  { glyphs: [{ perf: PERF.WEAK,    deviation: -0.8 }], text: "Below — worse" },
+  { glyphs: [{ perf: PERF.STRONG,  deviation: 0.8 }],  text: "Above the line, blue — better than the benchmark" },
+  { glyphs: [{ perf: PERF.MID,     deviation: 0.2 }],  text: "Yellow — close to it" },
+  { glyphs: [{ perf: PERF.WEAK,    deviation: -0.8 }], text: "Below, red — worse" },
   { glyphs: [{ perf: PERF.NEUTRAL, deviation: 0.7 }],  text: "Grey — neither better nor worse" },
   { glyphs: [{ perf: PERF.NONE,    deviation: 0 }],    text: "No recent reading" },
 ];
