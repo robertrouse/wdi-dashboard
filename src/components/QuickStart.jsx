@@ -178,14 +178,7 @@ export default function QuickStart({ onClose }) {
         </div>
 
         <div style={{ padding: "6px 34px 24px", display: "flex", justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{
-              background: "var(--blue-maven)", color: "var(--white)", border: "none",
-              borderRadius: 9, padding: "11px 26px", fontSize: "17px", fontWeight: 500,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
+          <button onClick={onClose} className="btn btn--primary">
             Got it
           </button>
         </div>

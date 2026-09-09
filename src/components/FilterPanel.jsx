@@ -156,11 +156,7 @@ export default function FilterPanel({
         <button
           onClick={onClose}
           aria-label="Close filters"
-          style={{
-            background: "transparent", border: "1.5px solid var(--rule-strong)",
-            borderRadius: 8, padding: "6px 14px", fontSize: "15px",
-            color: "var(--ink)", cursor: "pointer", fontFamily: "inherit",
-          }}
+          className="btn btn--secondary btn--sm"
         >
           Done
         </button>
@@ -234,7 +230,8 @@ export default function FilterPanel({
         <div style={{ marginTop: 10, fontSize: "14px", color: "var(--warm-grey)" }}>
           {selected.length} countries selected
           {selected.length > 0 && (
-            <button onClick={() => setSelected([])} style={{ ...S.btn, marginLeft: 8, padding: "3px 8px" }}>clear</button>
+            <button onClick={() => setSelected([])} className="btn btn--ghost btn--xs"
+                    style={{ marginLeft: 8, color: "var(--ink-soft)" }}>clear</button>
           )}
         </div>
       </div>
