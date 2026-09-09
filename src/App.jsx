@@ -30,7 +30,12 @@ const PER_REGION = 5;
 const PRESETS = [
   { id: "gdp5",  label: "Top 5 per region · GDP",        hint: `The ${PER_REGION} largest economies in each World Bank region` },
   { id: "pop5",  label: "Top 5 per region · population", hint: `The ${PER_REGION} most populous countries in each World Bank region` },
-  { id: "g20",   label: "G20",                           hint: "G20 member states" },
+  // Says 19 rather than 20 on purpose, and the hint is where a reader who
+  // counts will go looking. The other two seats are the European Union and,
+  // since 2023, the African Union — blocs, not countries, so they have no row
+  // in a country-level dataset, and the EU would double-count France, Germany
+  // and Italy, which are already in the list.
+  { id: "g20",   label: "G20",                           hint: `The ${G20.length} G20 member states — the EU and AU seats are blocs, not countries` },
 ];
 
 const DEFAULT_PRESET = "g20";
