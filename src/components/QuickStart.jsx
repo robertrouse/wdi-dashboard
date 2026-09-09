@@ -119,20 +119,27 @@ export default function QuickStart({ onClose }) {
             onClick={onClose}
             aria-label="Close"
             title="Close"
+            /* 44px is the accessible minimum for a hit target, and this is the
+               only way out that is visible on sight — Escape and the backdrop
+               both work but neither announces itself. The glyph stays modest;
+               it is the target that grew. */
             style={{
-              position: "absolute", top: 14, right: 14,
+              position: "absolute", top: 10, right: 12,
               display: "inline-flex", alignItems: "center", justifyContent: "center",
-              width: 32, height: 32, padding: 0,
-              background: "transparent", border: "none", borderRadius: 8,
+              width: 44, height: 44, padding: 0,
+              background: "transparent", border: "none", borderRadius: 10,
               color: "var(--blue-ice)", cursor: "pointer", lineHeight: 0,
+              transition: "background .12s ease",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,206,234,.14)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
-          <h2 id="qs-title" style={{ fontSize: "23px", lineHeight: 1.15, paddingRight: 34 }}>
+          <h2 id="qs-title" style={{ fontSize: "23px", lineHeight: 1.15, paddingRight: 56 }}>
             How to Use This Dashboard
           </h2>
           {/* Says what the reader is looking at, not what is clever about how
