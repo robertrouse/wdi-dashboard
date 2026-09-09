@@ -8,11 +8,14 @@ import { useMemo, useState } from "react";
    the ones in trouble" escape hatch.
 
    There is deliberately no "regions shown" control. Region is how the table is
-   GROUPED, not a facet to switch off, and hiding a region silently moved every
-   benchmark on screen — the peer median is computed from the visible rows — so
-   a control that read as "show less" quietly rescored the whole view. Choosing
-   the country set does that job honestly, because changing the set is visibly
-   changing the comparison. One structure serving many questions is
+   GROUPED, not a facet to switch off, and a control reading "show less" that
+   silently rescored the whole view is a trap. Most benchmarks no longer move
+   with the selection at all — a country is measured against its own region's
+   published subtotal, which is fixed — but the few that still use a peer median
+   (GDP, population, net migration) would, and hiding a region is the one way to
+   change that set without appearing to. Choosing the country set does the same
+   job honestly, because changing the set is visibly changing the comparison.
+   One structure serving many questions is
    the whole argument of the chapter: every control here changes what the same
    components render rather than switching to a different sheet.
 

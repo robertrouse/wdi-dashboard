@@ -216,7 +216,7 @@ export default function App() {
   }, [bundle, view, visibleCodes, byCode, focus, indicators]);
 
   const scales = useMemo(
-    () => buildScalesFromRows(dataRows, indicators),
+    () => buildScalesFromRows(dataRows, indicators, bundle),
     [dataRows, indicators]
   );
 

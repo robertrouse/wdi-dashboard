@@ -133,8 +133,36 @@ Source material lives in the parent folder `../`:
     are built in the `rows` memo, *after* `scales` is derived from `dataRows` —
     that ordering is load-bearing. Letting a region's total into the median of
     its own members would move the very line the row exists to illustrate. They
-    are scored against that scale, they just do not help set it, and the
-    benchmark note counts peers only.
+    are scored against the World rather than that scale, they just do not help
+    set it, and the peer-median note counts peers only.
+
+11b. **A row's glyph and its sparkline are measured from the same place.**
+    `benchmarkFor()` (the verdict and the fill) and `referenceFor()` (the dotted
+    line) must agree row for row, and their exclusion lists are written to
+    mirror each other. Change one, change both.
+
+    | row | benchmark |
+    |-----|-----------|
+    | country, level metric with a direction | its own region's published subtotal |
+    | region, level metric with a direction | the World aggregate |
+    | any row, band metric (inflation) | the target band |
+    | any row, additive metric (GDP, population, net migration) | no verdict for a region — a share; peer median for a country |
+    | any row, no favourable direction (urbanisation) | none |
+    | the World row | none — nothing sits above it |
+
+    This was broken until 2026-09-09 and it is the failure mode to watch for.
+    Countries were scored against the median of the visible selection while the
+    sparkline right beneath was drawn against the region, so Korea's under-5
+    mortality card read "clearly better than the peer median, 5.7 per 1,000"
+    over a chart measuring it against 13.2. Both marks were defensible; having
+    both in one card was not.
+
+    Because country-to-region gaps have wildly different natural sizes — ±12% on
+    life expectancy, −83% to +440% on GDP per capita — the sensitivity comes from
+    `regionGapSpreads()`, the median absolute relative gap for that metric across
+    every country the Bank publishes. It is computed from the whole bundle, NOT
+    the visible rows: the benchmark no longer moves when the reader filters, so
+    the ruler must not either, or the bug comes back wearing a different hat.
 
 12. **Change is percent, except for metrics already in percent.** Those report
     percentage points — "unemployment up 10%" for 4.0% to 4.4% is the classic

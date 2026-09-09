@@ -19,10 +19,14 @@
         reader should have to infer. Homicides down is good; life expectancy up
         is good; population has no direction at all and is drawn neutral.
 
-     3. TARGETS, WHERE THEY EXIST, BEAT BENCHMARKS.
-        Most development indicators have no target, so the peer median is the
-        benchmark. Inflation does have one (a ~2% band), so it uses it. Both
-        produce the same 0-1 score, so the same glyph reads either way.
+     3. EVERY ROW IS MEASURED AGAINST A PUBLISHED AGGREGATE.
+        A country is read against its own region's subtotal, a region against
+        the World. Where an explicit target exists it wins — inflation has one
+        (a ~2% band) and uses it. A peer median of the visible rows is the last
+        resort, kept only for the metrics where no aggregate can serve as a
+        benchmark: the additive ones, where a country sits below its region by
+        construction. All three produce the same 0-1 score, so the same glyph
+        reads whichever governs.
 
      4. NO DATA IS A STATE, NOT A ZERO.
         Adult literacy is only measured in survey years. A missing value renders
@@ -68,9 +72,11 @@ export function median(nums) {
  *
  * Two things follow from taking the *rows* rather than the underlying data:
  *
- *  - Scales are recomputed whenever the filter changes. "Above average" has to
- *    mean above the average of what the reader is looking at, or the
- *    comparison is a lie of omission.
+ *  - The peer-median scales are recomputed whenever the filter changes. Where
+ *    one is still the benchmark, "above average" has to mean above the average
+ *    of what the reader is looking at, or the comparison is a lie of omission.
+ *    The region-gap spread does NOT move with the filter — see
+ *    regionGapSpreads for why that asymmetry is deliberate.
  *
  *  - In region view the comparison set is the seven official regional
  *    aggregates, not the couple of hundred countries behind them. Scoring a
@@ -80,8 +86,9 @@ export function median(nums) {
  * `rows` is anything with a `get(indicatorId)` method — country rows and
  * region roll-ups both qualify.
  */
-export function buildScalesFromRows(rows, indicators) {
+export function buildScalesFromRows(rows, indicators, bundle) {
   const scales = {};
+  const gaps = regionGapSpreads(bundle, indicators);
   for (const ind of indicators) {
     const vals = [];
     for (const row of rows) {
@@ -97,6 +104,9 @@ export function buildScalesFromRows(rows, indicators) {
       median: median(sorted),
       benchmark: ind.target != null ? ind.target : median(sorted),
       benchmarkKind: ind.target != null ? "target" : "peer median",
+      /* How big a gap from a country's own region counts as a big gap, for
+         this metric. Fixed — see regionGapSpreads. */
+      regionGap: gaps[ind.id] ?? null,
     };
   }
   return scales;
@@ -208,10 +218,13 @@ export function delta(rec, ind) {
    read "weak" for the mirror-image reason. Neither was a finding.
 
    Regional subtotals are therefore measured against the WORLD aggregate, which
-   is the only peer a region has. That also makes the glyph and the sparkline
-   agree: referenceFor() already draws a region's dotted line against the World,
+   is the only peer a region has, and a country against its own region. That
+   also makes the glyph and the sparkline agree, which is the whole reason the
+   two functions share a rule: referenceFor() already draws those exact lines,
    and a row whose two marks are measured from different places is lying to at
-   least one reader.
+   least one reader. Countries were doing precisely that until 2026-09-09 — the
+   hover card scored them against the median of the visible selection while the
+   sparkline under it was drawn against the region.
 
    The exclusions mirror referenceFor() exactly, and for the same reasons:
 
@@ -232,6 +245,51 @@ export function delta(rec, ind) {
    -------------------------------------------------------------------------- */
 
 const WORLD_SPREAD = 0.30;
+
+/* How many "typical gaps" from your own region reads as clearly better or
+   worse. At 2.0 the middle band is roughly ±0.6 of a typical gap, which across
+   the real data splits 43% strong / 28% near / 29% weak — a genuine middle,
+   where a tighter constant makes the column almost binary. */
+const REGION_SPREAD = 2.0;
+
+/**
+ * Per-indicator: how far a country typically sits from its own region.
+ *
+ * A single constant cannot serve this. Country-to-region gaps run ±12% on life
+ * expectancy and −83% to +440% on GDP per capita; one threshold would call
+ * every country average on the first and extreme on the second. So the scale
+ * comes from the metric's own data: the MEDIAN ABSOLUTE relative gap between a
+ * country and its region's published subtotal, over every country the Bank
+ * publishes. Robust to the outliers that make these distributions unusable —
+ * Monaco's GDP per capita is 15x its region and would otherwise set the ruler
+ * for all of Europe.
+ *
+ * Computed from the WHOLE bundle, not the visible rows, and that is deliberate.
+ * The benchmark a country is judged against is now its region, which does not
+ * move when the reader filters. If the sensitivity moved instead, the same
+ * country against the same region would change colour because an unrelated
+ * country was added to the table — the filtering bug in a new place.
+ */
+export function regionGapSpreads(bundle, indicators) {
+  const out = {};
+  if (!bundle?.countries) return out;
+  for (const ind of indicators) {
+    if (ind.aggKind === "total") continue;
+    if (ind.direction !== "up" && ind.direction !== "down") continue;
+    const abs = [];
+    for (const c of bundle.countries) {
+      const rec = bundle.series?.[c.c]?.[ind.id];
+      if (!rec || rec.v == null) continue;
+      const code = bundle.regionCodes?.[c.r];
+      const rr = code ? bundle.regionSeries?.[code]?.[ind.id] : null;
+      if (!rr || rr.v == null || rr.v === 0) continue;
+      abs.push(Math.abs((rec.v - rr.v) / Math.abs(rr.v)));
+    }
+    const m = median(abs);
+    if (m != null && m > 0) out[ind.id] = m;
+  }
+  return out;
+}
 
 /** Rows that carry a published subtotal rather than a single economy. */
 export function isAggregateRow(row) {
@@ -254,11 +312,40 @@ export function benchmarkFor(bundle, row, ind, scale) {
     const w = worldRecord(bundle, ind);
     return w ? { kind: "world", value: w.v, label: "World" } : noVerdict;
   }
-  return {
+  /* A COUNTRY is measured against its own region's published subtotal.
+
+     It used to be measured against the median of whatever countries happened
+     to be on screen, and that was wrong in a way the dashboard was already
+     admitting elsewhere: referenceFor() draws the regional aggregate as the
+     sparkline's dotted line, so the hover card said "clearly better than the
+     peer median, 5.7 per 1,000" directly above a chart measuring the same
+     country against 13.2. Two marks in one card, measured from two different
+     places. The region is the right one — it is a published figure, it does
+     not move when the reader filters, and "how does Korea compare with East
+     Asia & Pacific" is a question with an answer.
+
+     The exclusions mirror referenceFor() exactly, and for the same reasons: a
+     TOTAL is not a benchmark (a country is below its region's GDP by
+     construction), and a metric with no favourable direction has no verdict to
+     give. Those keep the peer median, which is the honest reading left. */
+  const peer = {
     kind: "peer",
     value: scale?.benchmark ?? null,
     label: scale?.benchmarkKind ?? "peer median",
   };
+  if (ind.aggKind === "total") return peer;
+  if (ind.direction !== "up" && ind.direction !== "down") return peer;
+
+  const rec = row.region == null ? null : regionRecord(bundle, row.region, ind);
+  if (rec) {
+    return { kind: "region", value: rec.v, label: bundle.regions[row.region]?.trim() ?? "its region" };
+  }
+  // Every country/metric pair in the current bundle has a regional subtotal, so
+  // this is a guard rather than a path. If one ever goes missing, step up to the
+  // World rather than down to the peer median: it is still one of the Bank's own
+  // aggregates, so the column keeps a single kind of number in it.
+  const w = worldRecord(bundle, ind);
+  return w ? { kind: "world", value: w.v, label: "World" } : peer;
 }
 
 /** Score a row against whatever benchmarkFor() says governs it. */
@@ -266,16 +353,26 @@ export function scoreRow(rec, ind, scale, bm) {
   if (!rec || rec.v == null) return { perf: PERF.NONE, goodness: null, deviation: 0, rank: null };
   if (!bm || bm.kind === "none") return { perf: PERF.NEUTRAL, goodness: null, deviation: 0, rank: null };
 
-  if (bm.kind === "world") {
+  if (bm.kind === "world" || bm.kind === "region") {
     if (bm.value == null || bm.value === 0) {
       return { perf: PERF.NONE, goodness: null, deviation: 0, rank: null };
     }
+    /* Same shape either way — relative difference from a published aggregate,
+       squashed by however much of a difference counts as a lot. What differs is
+       the ruler: a region against the World gets a flat constant, because seven
+       regional subtotals of the same metric are already on comparable ground. A
+       country against its region does not, because the spread of that gap is a
+       property of the metric (±12% on life expectancy, −83% to +440% on GDP per
+       capita), so it comes from the metric's own distribution. */
+    const spread = bm.kind === "region"
+      ? (scale?.regionGap ?? 0.30) * REGION_SPREAD
+      : WORLD_SPREAD;
     const rel = (rec.v - bm.value) / Math.abs(bm.value);
     const signed = ind.direction === "down" ? -rel : rel;
-    const goodness = 0.5 + 0.5 * Math.tanh(signed / WORLD_SPREAD);
+    const goodness = 0.5 + 0.5 * Math.tanh(signed / spread);
     const perf = goodness >= 0.62 ? PERF.STRONG : goodness >= 0.38 ? PERF.MID : PERF.WEAK;
     // Fill follows the raw comparison, not the verdict — see score() above.
-    const deviation = Math.tanh(rel / WORLD_SPREAD);
+    const deviation = Math.tanh(rel / spread);
     return { perf, goodness, deviation, rank: null };
   }
 

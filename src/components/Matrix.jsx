@@ -71,7 +71,11 @@ function perfWord(perf, ind, bm, value, { share, isWorld } = {}) {
     return value < lo ? `Below the ${band} target band` : `Above the ${band} target band`;
   }
 
+  /* Name the thing, not the category. "Clearly better than East Asia &
+     Pacific" is a sentence a reader can check; "clearly better than the
+     benchmark" makes them go looking for what the benchmark was. */
   const against = bm?.kind === "world" ? "the World"
+                : bm?.kind === "region" ? bm.label
                 : bm?.kind === "target" ? "the target"
                 : "the peer median";
   return perf === PERF.STRONG ? `Clearly better than ${against}`
@@ -394,7 +398,11 @@ function RowMetricCard({ ind, row, rec, sc, bm, scale, bundle }) {
 
       <div style={{ fontSize: "14.5px", marginTop: 3, color: PERF_COLOR[sc.perf] }}>
         {perfWord(sc.perf, ind, bm, rec?.v, { share, isWorld: row.kind === "world" })}
-        {bm?.value != null && sc.perf !== PERF.NONE && (
+        {/* Only where the line above actually made a comparison. Printing
+            "peer median 83.5M" under "no favorable direction — shown for
+            context" asserts a benchmark one line after denying there is one,
+            and the same goes for a share, which is already the whole reading. */}
+        {bm?.value != null && sc.perf !== PERF.NONE && sc.perf !== PERF.NEUTRAL && (
           <span style={{ color: "var(--warm-grey)" }}>
             {" · "}{bm.label} {formatValue(bm.value, ind)}
           </span>

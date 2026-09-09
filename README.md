@@ -14,10 +14,10 @@ doing?" across all of them at once, and no shared axis can carry them.
 |---|---|
 | Position is normalized; labels stay in native units | The glyph column vs. the value column |
 | Favorable direction is metadata, not intuition | Falling under-5 mortality and rising life expectancy are both blue |
-| Targets beat benchmarks where they exist | Inflation scores against a 2% band; everything else against the peer median |
-| The benchmark follows the selection | Change the country set and every glyph re-scores |
+| Every row is read against a published aggregate | A country against its own region's subtotal, a region against the World; inflation against its 2% band |
+| The benchmark does not move when you filter | Korea is measured against East Asia & Pacific whether one country is on screen or fifty |
 | "No data" is a state, not a zero | Adult literacy renders `NA`, never an empty or bottom-ranked cell |
-| Sparklines show shape and standing, not magnitude | Each scaled to its own range, with a dotted peer benchmark and colour by which side of it each year fell on |
+| Sparklines show shape and standing, not magnitude | Each scaled to its own range, with the dotted line drawn at the same benchmark the glyph is scored from |
 | One structure, not one panel per metric | Adding an indicator is a row in `data/indicators.json` |
 
 This is a web reimplementation of "Multiple Key Performance Metrics" (Robert

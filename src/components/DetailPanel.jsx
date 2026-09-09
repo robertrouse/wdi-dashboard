@@ -178,12 +178,20 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                       <span aria-hidden="true" style={{ color: "var(--blue-maven)", marginLeft: 5, fontSize: "12px" }}>↗</span>
                     </a>
                     {/* What THIS row is measured against — the World for a
-                        regional subtotal, the peer median for a country. */}
+                        regional subtotal, its own region for a country, and the
+                        peer median only where neither can serve (GDP,
+                        population, net migration, urbanisation). */}
                     <div style={{ fontSize: "13.5px", color: "var(--warm-grey)" }}>
-                      {bm.value != null
-                        ? `${bm.label} ${formatValue(bm.value, ind)}`
-                        : share != null
+                      {/* A share comes first where there is one: for GDP,
+                          population and net migration it IS the comparison, and
+                          a peer median sitting in its place answers a question
+                          nobody asked of an additive total. */}
+                      {share != null
                         ? `${(share * 100).toFixed(1)}% of the world total`
+                        : sc.perf === PERF.NEUTRAL
+                        ? ""
+                        : bm.value != null
+                        ? `${bm.label} ${formatValue(bm.value, ind)}`
                         : "no benchmark"}
                     </div>
                   </div>
