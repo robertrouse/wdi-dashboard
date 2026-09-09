@@ -129,8 +129,13 @@ export default function QuickStart({ onClose }) {
           <h2 id="qs-title" style={{ fontSize: "25px", lineHeight: 1.15, paddingRight: 34 }}>
             How to Use This Dashboard
           </h2>
+          {/* Says what the reader is looking at, not what is clever about how
+              it was built. "Fifteen metrics, one scale" was the latter — a
+              description of the technique, which belongs in a write-up about
+              the dashboard rather than in the dashboard. Someone opening this
+              wants to know it is about countries and how they are doing. */}
           <p style={{ margin: "5px 0 0", fontSize: "16px", fontWeight: 300, color: "var(--cool-grey)" }}>
-            Fifteen metrics, one scale.
+            How countries and regions compare, across fifteen measures of development.
           </p>
         </div>
 
