@@ -80,6 +80,13 @@ function makeRefAt(refPoints) {
    the eye is concerned, and it handles the band case (two thresholds, so the
    sign can flip twice in one segment) without special-casing it. */
 const SUB = 12;
+
+/** Which side of the reference one point falls on. Shared by the line and the
+    dots so the two can never disagree — see the note at the dots below. */
+function classAt(x, y, refAt, ind) {
+  const f = favAt(y, refAt(x), ind);
+  return f == null ? "neutral" : f > 0 ? "better" : f < 0 ? "worse" : "neutral";
+}
 function colourRuns(points, refAt, ind, hasReference) {
   // No reference to cross, so nothing to encode: keep the single performance
   // colour the row already carries, exactly as before this feature existed.
@@ -98,8 +105,7 @@ function colourRuns(points, refAt, ind, hasReference) {
   const runs = [];
   let cur = null;
   for (const [x, y] of samples) {
-    const f = favAt(y, refAt(x), ind);
-    const cls = f == null ? "neutral" : f > 0 ? "better" : f < 0 ? "worse" : "neutral";
+    const cls = classAt(x, y, refAt, ind);
     if (!cur || cur.cls !== cls) {
       if (cur) cur.pts.push([x, y]);          // share the boundary so the line stays unbroken
       cur = { cls, pts: [[x, y]] };
@@ -154,7 +160,8 @@ export default function Sparkline({
   const sy = (y) => height - pad - ((y - y0) / spanY) * (height - pad * 2);
   const path = (pts) => pts.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
 
-  const runs = colourRuns(points, refAt, ind, !!(band || refPts));
+  const hasReference = !!(band || refPts);
+  const runs = colourRuns(points, refAt, ind, hasReference);
   const lastRun = runs[runs.length - 1];
   const endColor = lastRun && lastRun.cls != null ? FAV_COLOR[lastRun.cls] : color;
   const area = `${path(points)} L${sx(x1).toFixed(1)},${height - pad} L${sx(x0).toFixed(1)},${height - pad} Z`;
@@ -242,8 +249,16 @@ export default function Sparkline({
                 strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
         ))}
 
+        {/* Each dot takes the colour of the year it marks, from the same
+            predicate the line segments use. They used to take `color` — the
+            row's CURRENT verdict — which put cerise dots along a blue line
+            whenever a row sat on the good side of its benchmark for most of
+            the window and crossed at the end. Japan's internet users did
+            exactly that: blue trace, red dots, two encodings arguing on one
+            mark. */}
         {showDots && points.map((p, i) => (
-          <circle key={i} cx={sx(p[0])} cy={sy(p[1])} r="2.25" fill={color} opacity="0.55" />
+          <circle key={i} cx={sx(p[0])} cy={sy(p[1])} r="2.25" opacity="0.55"
+                  fill={hasReference ? FAV_COLOR[classAt(p[0], p[1], refAt, ind)] : color} />
         ))}
 
         {/* The latest reading, in the colour of the segment it ends. It used to
