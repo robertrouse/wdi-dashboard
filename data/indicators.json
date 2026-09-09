@@ -20,7 +20,8 @@
   "definition": "Gross domestic product is the total income earned through the production of goods and services in an economic territory during an accounting period. It can be measured in three different ways: using either the expenditure approach, the income approach, or the production approach. This indicator is expressed in current prices, meaning no adjustment has been made to account for price changes over time. This indicator is expressed in United States dollars.",
   "caveat": "Gross domestic product (GDP), though widely tracked, may not always be the most relevant summary of aggregated economic performance for all economies, especially when production occurs at the expense of consuming capital stock.\n\n\n\n\n\nWhile GDP estimates based on the production approach are generally more reliable than estimates compiled from the income or expenditure side, different countries use different definitions, methods, and reporting standards. World Bank staff review the quality of national accounts data and sometimes make adjustments to improve consistency with international guidelines. Nevertheless, significant discrepancies remain between international standards and actual practice. Many statistical offices, especially those in developing countries, face severe limitations in the resources, time, training, and budgets required to produce reliable and comprehensive series of national accounts statistics.\n\n\n\n\n\nAmong the difficulties faced by compilers of national accounts is the extent of unreported economic activity in the informal or secondary economy. In developing countries a large share of agricultural output is either not exchanged (because it is consumed within the household) or not exchanged for money.",
   "source": "Country official statistics, National Statistical Organizations and/or Central Banks; National Accounts data files, Organisation for Economic Co-operation and Development (OECD); Staff estimates, Worl…",
-  "short": "GDP"
+  "short": "GDP",
+  "caveatShort": "Countries use different methods and standards, and informal or non-monetary activity often goes uncounted."
  },
  {
   "id": "gdppc",
@@ -43,7 +44,8 @@
   "definition": "Gross domestic product is the total income earned through the production of goods and services in an economic territory during an accounting period. It can be measured in three different ways: using either the expenditure approach, the income approach, or the production approach. The core indicator has been divided by the general population to achieve a per capita estimate.This indicator is expressed in current prices, meaning no adjustment has been made to account for price changes over time. This indicator is expressed in United States dollars.",
   "caveat": "",
   "source": "Country official statistics, National Statistical Organizations and/or Central Banks; National Accounts data files, Organisation for Economic Co-operation and Development (OECD); Staff estimates, Worl…",
-  "short": "GDP / capita"
+  "short": "GDP / capita",
+  "caveatShort": ""
  },
  {
   "id": "gdpgrow",
@@ -66,7 +68,8 @@
   "definition": "Gross domestic product is the total income earned through the production of goods and services in an economic territory during an accounting period. It can be measured in three different ways: using either the expenditure approach, the income approach, or the production approach. This indicator denotes the percentage change over each previous year of the constant price (base year 2015) series in United States dollars.",
   "caveat": "Each industry's contribution to growth in the economy's output is measured by growth in the industry's value added. In principle, value added in constant prices can be estimated by measuring the quantity of goods and services produced in a period, valuing them at an agreed set of base year prices, and subtracting the cost of intermediate inputs, also in constant prices. This double-deflation method requires detailed information on the structure of prices of inputs and outputs.\n\n\n\n\n\nIn many industries, however, value added is extrapolated from the base year using single volume indexes of outputs or, less commonly, inputs. Particularly in the services industries, including most of government, value added in constant prices is often imputed from labor inputs, such as real wages or number of employees. In the absence of well defined measures of output, measuring the growth of services remains difficult.\n\n\n\n\n\nMoreover, technical progress can lead to improvements in production processes and in the quality of goods and services that, if not properly accounted for, can distort measures of value added and thus of growth. When inputs are used to estimate output, as for nonmarket services, unmeasured technical progress leads to underestimates of the volume of output. Similarly, unmeasured improvements in quality lead to underestimates of the value of output and value added. The result can be underestimates of growth and productivity improvement and overestimates of inflation.\n\n\n\n\n\nInformal economic activities pose a particular measurement problem, especially in developing countries, where much economic activity is unrecorded. A complete picture of the economy requires estimating household outputs produced for home use, sales in informal markets, barter exchanges, and illicit or deliberately unreported activities. The consistency and completeness of such estimates depend on the skill and methods of the compiling statisticians.\n\n\n\n\n\nRebasing of national accounts can alter the measured growth rate of an economy and lead to breaks in series that affect the consistency of data over time. When countries rebase their national accounts, they update the weights assigned to various components to better reflect current patterns of production or uses of output. The new base year should represent normal operation of the economy - it should be a year without major shocks or distortions. Some developing countries have not rebased their national accounts for many years. Using an old base year can be misleading because implicit price and volume weights become progressively less relevant and useful.\n\n\n\n\n\nTo obtain comparable series of constant price data for computing aggregates, the World Bank rescales GDP and value added by industrial origin to a common reference year. Because rescaling changes the implicit weights used in forming regional and income group aggregates, aggregate growth rates are not comparable with those from earlier editions with different base years. Rescaling may result in a discrepancy between the rescaled GDP and the sum of the rescaled components. To avoid distortions in the growth rates, the discrepancy is left unallocated. As a result, the weighted average of the growth rates of the components generally does not equal the GDP growth rate.",
   "source": "Country official statistics, National Statistical Organizations and/or Central Banks; National Accounts data files, Organisation for Economic Co-operation and Development (OECD); Staff estimates, Worl…",
-  "short": "GDP growth"
+  "short": "GDP growth",
+  "caveatShort": "Growth in services is especially hard to measure, and unmeasured gains in quality or technology understate it."
  },
  {
   "id": "infl",
@@ -92,7 +95,8 @@
   "definition": "Inflation as measured by the consumer price index reflects the annual percentage change in the cost to the average consumer of acquiring a basket of goods and services that may be fixed or changed at specified intervals, such as yearly. This indicator denotes the percentage change over each previous year of the constant price (base year 2015) series in United States dollars.",
   "caveat": "",
   "source": "International Financial Statistics database, International Monetary Fund (IMF)",
-  "short": "Inflation"
+  "short": "Inflation",
+  "caveatShort": ""
  },
  {
   "id": "unemp",
@@ -115,7 +119,8 @@
   "definition": "Unemployment refers to the share of the labor force that is without work but available for and seeking employment.",
   "caveat": "While the unemployment rate may be considered the most informative labour market indicator, reflecting the general performance of the labour market and the economy as a whole, it should not be interpreted as a measure of economic hardship or of well-being. When based on the internationally-recommended standards, the unemployment rate simply reflects the proportion of the labour force that does not have a job but is available and actively looking for work. It says nothing about the economic resources of unemployed workers or their family members. Its use should, therefore, be limited to serving as a measurement of the utilization of labour and an indication of the failure to find work. Other measures, including income-related indicators, would be needed to evaluate economic hardship. An additional criticism of the aggregate unemployment measure is that it masks information on the composition of the jobless population and therefore misses out on the particularities of the education level, ethnic origin, socio-economic background, work experience, etc. of the unemployed. Moreover, the unemployment rate says nothing about the type of unemployment – whether it is cyclical and short-term or structural and long-term – which is a critical issue for policy makers in the development of their policy responses, especially given that structural unemployment cannot be addressed by boosting market demand only.",
   "source": "ILO Modelled Estimates database (ILOEST), International Labour Organization (ILO), uri: https://ilostat.ilo.org/data/bulk/, publisher: ILOSTAT, type: external database, date accessed: January 07, 2025…",
-  "short": "Unemployment"
+  "short": "Unemployment",
+  "caveatShort": "Counts people looking for work, not hardship — it says nothing about income, who is jobless, or for how long."
  },
  {
   "id": "pop",
@@ -138,7 +143,8 @@
   "definition": "Total population is based on the de facto definition of population, which counts all residents regardless of legal status or citizenship. The values shown are midyear estimates.",
   "caveat": "Current population estimates for developing countries that lack (i) reliable recent census data, and (ii) pre- and post-census estimates for countries with census data, are provided by the United Nations Population Division and other agencies. \n\n\n\nThe cohort component method - a standard method for estimating and projecting population - requires fertility, mortality, and net migration data, often collected from sample surveys, which can be small or limited in coverage. Population estimates are from demographic modeling and so are susceptible to biases and errors from shortcomings in both the model and the data.\n\n\n\nBecause future trends cannot be known with certainty, population projections have a wide range of uncertainty.",
   "source": "World Population Prospects, United Nations (UN), uri: https://population.un.org/wpp/, publisher: UN Population Division; Statistical databases and publications from national statistical offices, Natio…",
-  "short": "Population"
+  "short": "Population",
+  "caveatShort": "Modelled from censuses and surveys that are often dated or thin, so projections carry a wide range of uncertainty."
  },
  {
   "id": "urban",
@@ -161,7 +167,8 @@
   "definition": "Urban population refers to people living in urban areas as defined by national statistical offices. The data are collected and smoothed by United Nations Population Division.",
   "caveat": "Aggregation of urban and rural population may not add up to total population because of different country coverage.\n\nMost countries use an urban classification related to the size or characteristics of settlements. Some define urban areas based on the presence of certain infrastructure and services. And other countries designate urban areas based on administrative arrangements. Because of national differences in the characteristics that distinguish urban from rural areas, the distinction between urban and rural population is not amenable to a single definition that would be applicable to all countries.\n\nEstimates of the world's urban population would change significantly if China, India, and a few other populous nations were to change their definition of urban centers.\n\nBecause the estimates of city and metropolitan area are based on national definitions of what constitutes a city or metropolitan area, cross-country comparisons should be made with caution.",
   "source": "World Urbanization Prospects, United Nations (UN), uri: https://population.un.org/wup/, note: United Nations Population Division's World Urbanization Prospects, National definitions, publisher: UN Pop…",
-  "short": "Urban %"
+  "short": "Urban %",
+  "caveatShort": "Every country defines “urban” its own way, so cross-country comparison is rough and urban plus rural need not equal the total."
  },
  {
   "id": "migr",
@@ -184,7 +191,8 @@
   "definition": "Net migration is the net total of migrants during the period, that is, the number of immigrants minus the number of emigrants, including both citizens and noncitizens.",
   "caveat": "International migration is the component of population change most difficult to measure and estimate reliably. Thus, the quality and quantity of the data used in the estimation and projection of net migration varies considerably by country. Furthermore, the movement of people across international boundaries, which is very often a response to changing socio-economic, political and environmental forces, is subject to a great deal of volatility. Refugee movements, for instance, may involve large numbers of people moving across boundaries in a short time. For these reasons, projections of future international migration levels are the least robust part of current population projections and reflect mainly a continuation of recent levels and trends in net migration.",
   "source": "World Population Prospects, United Nations (UN), publisher: UN Population Division",
-  "short": "Net migration"
+  "short": "Net migration",
+  "caveatShort": "The hardest population component to measure, and volatile — refugee movements can shift it sharply in a single year."
  },
  {
   "id": "life",
@@ -207,7 +215,8 @@
   "definition": "Life expectancy at birth indicates the number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life.",
   "caveat": "Annual data series from United Nations Population Division's World Population Prospects are interpolated data from 5-year period data. Therefore they may not reflect real events as much as observed data.",
   "source": "World Population Prospects, United Nations (UN), uri: UN Population Division; Statistical databases and publications from national statistical offices, National statistical offices, note: Derived from…",
-  "short": "Life expect."
+  "short": "Life expect.",
+  "caveatShort": "Interpolated from the UN’s five-year series, so a single year may not reflect what actually happened."
  },
  {
   "id": "u5mort",
@@ -230,7 +239,8 @@
   "definition": "Under-five mortality rate is the probability per 1,000 that a newborn baby will die before reaching age five, if subject to age-specific mortality rates of the specified year.",
   "caveat": "Complete vital registration systems are fairly uncommon in developing countries. Thus estimates must be obtained from sample surveys or derived by applying indirect estimation techniques to registration, census, or survey data. Survey data are subject to recall error, and surveys estimating infant/child deaths require large samples because households in which a birth has occurred during a given year cannot ordinarily be preselected for sampling. Indirect estimates rely on model life tables that may be inappropriate for the population concerned. Extrapolations based on outdated surveys may not be reliable for monitoring changes in health status or for comparative analytical work.",
   "source": "UN Inter-agency Group for Child Mortality Estimation, UN Children's Fund (UNICEF), uri: www.childmortality.org, publisher: UNICEF, WHO, World Bank, United Nations Population Division; World Health Org…",
-  "short": "Under-5 mort."
+  "short": "Under-5 mort.",
+  "caveatShort": "Few developing countries register all deaths, so figures come from surveys and indirect models that carry real error."
  },
  {
   "id": "lit",
@@ -253,7 +263,8 @@
   "definition": "Adult literacy rate is the percentage of people ages 15 and above who can both read and write with understanding a short simple statement about their everyday life.",
   "caveat": "In practice, literacy is difficult to measure. Estimating literacy rates requires census or survey measurements under controlled conditions. Many countries report the number of literate people from self-reported data. Some use educational attainment data as a proxy but apply different lengths of school attendance or levels of completion. Ant there is a trend among recent national and international surveys toward using a direct reading test of literacy skills. Because definitions and methods of data collection differ across countries, data should be used cautiously.",
   "source": "Data API, UN Educational, Scientific and Cultural Organization (UNESCO), uri: https://databrowser.uis.unesco.org/resources, note: The data are obtained through the UIS API. Detailed documentation is a…",
-  "short": "Literacy"
+  "short": "Literacy",
+  "caveatShort": "Often self-reported or inferred from schooling, and defined differently country to country."
  },
  {
   "id": "net",
@@ -276,7 +287,8 @@
   "definition": "Internet users are individuals who have used the Internet (from any location) in the last 3 months. The Internet can be used via a computer, mobile phone, personal digital assistant, games machine, digital TV etc.",
   "caveat": "Operators have traditionally been the main source of telecommunications data, so information on subscriptions has been widely available for most countries. This gives a general idea of access, but a more precise measure is the penetration rate - the share of households with access to telecommunications. During the past few years more information on information and communication technology use has become available from household and business surveys. Also important are data on actual use of telecommunications services. Ideally, statistics on telecommunications (and other information and communications technologies) should be compiled for all three measures: subscriptions, access, and use. The quality of data varies among reporting countries as a result of differences in regulations covering data provision and availability.\n\nDiscrepancies may also arise in cases where the end of a fiscal year differs from that used by ITU, which is the end of December of every year. A number of countries have fiscal years that end in March or June of every year.",
   "source": "World Telecommunication/ICT Indicators Database, International Telecommunication Union (ITU), uri: https://datahub.itu.int/",
-  "short": "Internet %"
+  "short": "Internet %",
+  "caveatShort": "Mostly counts subscriptions rather than measured use, and data quality varies by country."
  },
  {
   "id": "elec",
@@ -299,7 +311,8 @@
   "definition": "Access to electricity is the percentage of population with access to electricity. Electrification data are collected from industry, national surveys and international sources.",
   "caveat": "",
   "source": "SDG 7.1.1 Electrification Dataset, World Bank (WB), uri: https://trackingsdg7.esmap.org/downloads, note: Data is downloaded from ESMAP website. Data is released when a new Tracking SDG7 report is rele…",
-  "short": "Electricity %"
+  "short": "Electricity %",
+  "caveatShort": ""
  },
  {
   "id": "ghg",
@@ -322,7 +335,8 @@
   "definition": "Total annual emissions of the six greenhouse gases (GHG) covered by the Kyoto Protocol (carbon dioxide (CO2), methane (CH4), nitrous oxide (N2O), hydrofluorocarbons (HFCs), perfluorocarbons (PFCs), and sulphurhexafluoride (SF6)) from the energy, industry, waste, and agriculture sectors, standardized to carbon dioxide equivalent values divided by the economy's population. This measure excludes GHG fluxes caused by Land Use Change Land Use and Forestry (LULUCF), as these fluxes have larger uncertainties.",
   "caveat": "Global GHG emissions are currently not directly measurable, but approaches for their estimation exist, and numerous sources exist to supply data for this indicator. Reputable scientific organizations produce these data for use for research, policy analysis, climate negotiations, and broader public communications. The estimated accuracy from fossil fuel combustion and industrial processes are quite high, as quantities of fossil fuels and other emissive materials (such as cement and steel) produced are well known. For these sectors, emissions estimates are roughly accurate to within 10% when aggregated to the global level and between 4% and 35% at the country level (Crippa et al., 2023). For non- combustion and non- industrial process emissions, the accuracy is lower. Agricultural emissions, for example, depend upon many factors including the type of crops grown and livestock raised, specific agricultural practices, and other climate and non-climate factors. For these emissions, the accuracy is lower—around 30% for CH4 and fluorinated gases (HFCs, PFCs, and SF6).",
   "source": "EDGAR (Emissions Database for Global Atmospheric Research) Community GHG Database, Joint Research Centre (JRC) - European Commission, uri: https://edgar.jrc.ec.europa.eu/dataset_ghg2024, publisher: JR…",
-  "short": "GHG / capita"
+  "short": "GHG / capita",
+  "caveatShort": "Estimated, not measured: fuel and industry to within about 4–35% per country, agriculture far less certain."
  },
  {
   "id": "homic",
@@ -345,6 +359,7 @@
   "definition": "An intentional homicide is defined as an unlawful death inflicted upon a person with the intent to cause death or serious injury.",
   "caveat": "Statistics reported to the United Nations in the context of its various surveys on crime levels and criminal justice trends are incidents of victimization that have been reported to the authorities in any given country. That means that this data is subject to the problems of accuracy of all official crime data. The survey results provide an overview of trends and interrelationships between various parts of the criminal justice system to promote informed decision-making in administration, nationally and internationally.\n\nThe degree to which different societies apportion the level of culpability to acts resulting in death is also subject to variation. Consequently, the comparison between countries and regions of \"intentional homicide\", or unlawful death purposefully inflicted on a person by another person, is also a comparison of the extent to which different countries deem that a killing be classified as such, as well as the capacity of their legal systems to record it. Caution should therefore be applied when evaluating and comparing homicide data.",
   "source": "UNODC Research - Data Portal – Intentional Homicide, UN Office on Drugs and Crime (UNODC)",
-  "short": "Homicides"
+  "short": "Homicides",
+  "caveatShort": "Only killings reported to authorities, and countries differ in what they classify as intentional homicide."
  }
 ]

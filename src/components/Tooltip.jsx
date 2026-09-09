@@ -117,9 +117,14 @@ export function IndicatorCard({ ind, extra }) {
           "Limitations and exceptions" entry at all, and an empty "Read with
           care ·" was asserting a caveat that does not exist. */}
       {ind.caveat && (() => {
-        // Shortened by taking fewer of the Bank's sentences, never by rewriting
-        // them. The full text is one click away in the row detail.
-        const { text, truncated } = excerpt(ind.caveat);
+        /* A written summary, not a quotation. The Bank's own limitations text
+           runs to 3,295 characters and mechanically excerpting it took whatever
+           its opening sentence happened to be, which is not reliably the part
+           that matters for reading the metric. These are authored — hence the
+           line pointing at the Bank's wording, so nothing here is mistaken for
+           it. `caveatShort` is required alongside every `caveat`; the excerpt
+           is a fallback so a newly added indicator degrades rather than breaks. */
+        const short = ind.caveatShort || excerpt(ind.caveat).text + "…";
         return (
           <div
             style={{
@@ -132,15 +137,14 @@ export function IndicatorCard({ ind, extra }) {
             }}
           >
             <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
-            {text}{truncated ? "…" : ""}
-            {truncated && (
-              <span style={{ display: "block", marginTop: 5, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
-                Full text in the row detail.
-              </span>
-            )}
+            {short}
+            <span style={{ display: "block", marginTop: 5, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
+              The Bank’s own wording is in the row detail.
+            </span>
           </div>
         );
       })()}
+
       <div style={{ marginTop: 10, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
         {ind.code} · {ind.periodicity || "Annual"} · higher is{" "}
         {ind.direction === "up" ? "better" : ind.direction === "down" ? "worse" : ind.direction === "band" ? `off-target (aim ≈ ${ind.target}%)` : "neither"}
