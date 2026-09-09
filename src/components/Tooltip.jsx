@@ -1,4 +1,5 @@
 import { useState, useRef, useLayoutEffect } from "react";
+import { excerpt } from "../lib/format.js";
 import { createPortal } from "react-dom";
 
 /* --------------------------------------------------------------------------
@@ -79,13 +80,11 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
             borderRadius: "var(--radius)",
             boxShadow: "0 12px 40px rgba(10,16,68,.20)",
             padding: "16px 18px 18px",
-            /* The caveats are the World Bank's own words, reproduced exactly,
-               and the longest runs to 3,295 characters. Truncating it would
-               make it no longer the source's text, so the CARD gives instead:
-               it caps at 60% of the viewport and scrolls. Which means it has
-               to accept the pointer — hence the enter/leave handling below,
-               and a short grace period so the mouse can travel from the anchor
-               to the card without it vanishing en route. */
+            /* The card shows a verbatim EXCERPT of the limitations, so it is
+               short by construction. The cap is a backstop for a long
+               definition, not the main event. It accepts the pointer so the
+               text can be selected and so the card survives the mouse
+               travelling to it — hence the grace period below. */
             maxHeight: "60vh",
             overflowY: "auto",
             overscrollBehavior: "contain",
@@ -117,21 +116,31 @@ export function IndicatorCard({ ind, extra }) {
       {/* Only when the World Bank publishes one. Three of the fifteen have no
           "Limitations and exceptions" entry at all, and an empty "Read with
           care ·" was asserting a caveat that does not exist. */}
-      {ind.caveat && (
-        <div
-          style={{
-            marginTop: 12,
-            paddingTop: 10,
-            borderTop: "1px solid var(--rule)",
-            fontSize: "15px",
-            lineHeight: 1.45,
-            color: "var(--warm-grey)",
-          }}
-        >
-          <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
-          {ind.caveat}
-        </div>
-      )}
+      {ind.caveat && (() => {
+        // Shortened by taking fewer of the Bank's sentences, never by rewriting
+        // them. The full text is one click away in the row detail.
+        const { text, truncated } = excerpt(ind.caveat);
+        return (
+          <div
+            style={{
+              marginTop: 12,
+              paddingTop: 10,
+              borderTop: "1px solid var(--rule)",
+              fontSize: "15px",
+              lineHeight: 1.45,
+              color: "var(--warm-grey)",
+            }}
+          >
+            <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
+            {text}{truncated ? "…" : ""}
+            {truncated && (
+              <span style={{ display: "block", marginTop: 5, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
+                Full text in the row detail.
+              </span>
+            )}
+          </div>
+        );
+      })()}
       <div style={{ marginTop: 10, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
         {ind.code} · {ind.periodicity || "Annual"} · higher is{" "}
         {ind.direction === "up" ? "better" : ind.direction === "down" ? "worse" : ind.direction === "band" ? `off-target (aim ≈ ${ind.target}%)` : "neither"}

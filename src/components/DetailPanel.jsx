@@ -14,11 +14,13 @@ import { indicatorUrl, economyUrl } from "../lib/sources.js";
    where it sits against the peer set, the direction of travel, and the shape of
    its decade.
 
-   Definitions and caveats deliberately do NOT appear here. Fifteen paragraphs
-   of standing text pushed the numbers off the screen and repeated, on every
-   row, something the reader only needs once. They live on the column-header
-   hover in the matrix, which is where the question "what is this metric?" is
-   actually asked.
+   Definitions and caveats live here in full, and COLLAPSED. Fifteen paragraphs
+   of standing text pushed the numbers off the screen, so the row opens as
+   numbers only and the words are one disclosure away. This is the only surface
+   that carries the World Bank's limitations text complete: it must be
+   reproduced exactly, the longest runs to 3,295 characters, and a hover card
+   is the wrong place for that. The matrix hover shows a verbatim excerpt and
+   points here.
 
    This is where the "different units" problem is at its most acute: fifteen
    metrics, eight unit types, one column of numbers. What makes it legible is
@@ -215,6 +217,33 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
                       </div>
                     )}
                   </div>
+
+                  {/* Full, exact, and shut until asked for. `open` is
+                      deliberately absent: fifteen expanded rows is the wall of
+                      text this panel exists to avoid. */}
+                  {(ind.definition || ind.caveat) && (
+                    <details style={{ gridColumn: "1 / -1", marginTop: 2 }}>
+                      <summary style={{
+                        cursor: "pointer", fontSize: "13.5px", color: "var(--warm-grey)",
+                        listStyle: "revert", width: "fit-content",
+                      }}>
+                        Definition{ind.caveat ? " and limitations" : ""}
+                      </summary>
+                      <div style={{ maxWidth: 760, padding: "8px 0 10px" }}>
+                        {ind.definition && (
+                          <p style={{ margin: 0, fontSize: "14.5px", lineHeight: 1.5, color: "var(--ink-soft)" }}>
+                            {ind.definition}
+                          </p>
+                        )}
+                        {ind.caveat && (
+                          <p style={{ margin: "9px 0 0", fontSize: "14.5px", lineHeight: 1.5, color: "var(--warm-grey)" }}>
+                            <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
+                            {ind.caveat}
+                          </p>
+                        )}
+                      </div>
+                    </details>
+                  )}
                 </div>
               );
             })}

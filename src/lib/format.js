@@ -123,3 +123,27 @@ export function clamp(text, n) {
   const i = Math.max(cut.lastIndexOf(" "), cut.lastIndexOf("\u2014"));
   return (i > n * 0.6 ? cut.slice(0, i) : cut).replace(/[\s,;:.\u2014-]+$/, "") + "\u2026";
 }
+
+/**
+ * A VERBATIM leading excerpt, cut at a sentence boundary.
+ *
+ * The World Bank's limitations text runs to 3,295 characters and must be
+ * reproduced exactly, which makes it wrong for a hover card and right for a
+ * panel the reader opened on purpose. The compromise is to shorten by taking
+ * FEWER of the source's sentences rather than by rewriting them: every word
+ * shown is still the source's own, in its own order, and `truncated` tells the
+ * caller to say so and point at the full text.
+ */
+export function excerpt(text, max = 230) {
+  if (!text) return { text: "", truncated: false };
+  if (text.length <= max) return { text, truncated: false };
+
+  // Prefer the last sentence end at or before `max`; allow a short overshoot so
+  // a sentence finishing just past the limit is kept whole rather than dropped.
+  let cut = -1;
+  for (const m of text.slice(0, max + 70).matchAll(/[.!?](?=\s|$)/g)) cut = m.index + 1;
+  if (cut > max * 0.4) return { text: text.slice(0, cut), truncated: true };
+
+  const w = text.lastIndexOf(" ", max);
+  return { text: text.slice(0, w > 0 ? w : max).replace(/[\s,;:]+$/, ""), truncated: true };
+}

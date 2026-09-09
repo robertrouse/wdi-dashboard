@@ -452,7 +452,7 @@ export default function App() {
   );
 }
 
-/* A glossary, not an essay.
+/* Footnotes, not an essay.
 
    This used to open by explaining the glyph and the sparkline in prose. The
    quick start now does that job with the marks themselves sitting next to the
@@ -488,7 +488,7 @@ const GLOSSARY = [
 function Method({ bundle }) {
   return (
     <section style={{ marginTop: 40, maxWidth: 900, fontSize: "16px", color: "var(--ink-soft)" }}>
-      <h3 style={{ fontSize: "21px", marginBottom: 12 }}>Glossary</h3>
+      <h3 style={{ fontSize: "21px", marginBottom: 12 }}>Footnotes</h3>
       <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(150px, 190px) 1fr", columnGap: 22 }}>
         {GLOSSARY.map(([term, def]) => (
           <div key={term} style={{ display: "contents" }}>
