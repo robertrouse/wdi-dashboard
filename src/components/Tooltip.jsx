@@ -110,8 +110,12 @@ export function IndicatorCard({ ind, extra }) {
         {ind.fullName}
       </div>
       {extra}
+      {/* The Bank's own definition where it is already short, a written one
+          where it runs long or repeats boilerplate — the three GDP entries
+          share an opening paragraph and each end by restating that they are in
+          current US dollars. Ten of the fifteen are still verbatim here. */}
       <div style={{ fontSize: "15.5px", lineHeight: 1.5, color: "var(--ink-soft)", marginTop: 8 }}>
-        {ind.definition}
+        {ind.definitionShort || ind.definition}
       </div>
       {/* Only when the World Bank publishes one. Three of the fifteen have no
           "Limitations and exceptions" entry at all, and an empty "Read with
@@ -138,14 +142,19 @@ export function IndicatorCard({ ind, extra }) {
           >
             <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
             {short}
-            <span style={{ display: "block", marginTop: 5, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
-              The Bank’s own wording is in the row detail.
-            </span>
           </div>
         );
       })()}
 
-      <div style={{ marginTop: 10, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
+      {/* Shown whenever anything on this card is a summary rather than the
+          source's text — which is either field, since a caveat is always
+          summarised here when one exists. */}
+      {(ind.definitionShort || ind.caveat) && (
+        <div style={{ marginTop: 9, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
+          The Bank’s own wording is in the row detail.
+        </div>
+      )}
+      <div style={{ marginTop: 6, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
         {ind.code} · {ind.periodicity || "Annual"} · higher is{" "}
         {ind.direction === "up" ? "better" : ind.direction === "down" ? "worse" : ind.direction === "band" ? `off-target (aim ≈ ${ind.target}%)` : "neither"}
       </div>
