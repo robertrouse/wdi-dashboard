@@ -10,13 +10,15 @@ import { PERF } from "../lib/kpi.js";
    tooltips already say, and was the tallest thing in the bar. What remains is
    the part a reader cannot get anywhere else — what the glyph shapes mean. */
 
+/* The "clearly worse" swatch is drawn ABOVE the line on purpose. It is the
+   case the new convention exists for and the one a reader will otherwise
+   misread: on a metric where less is better, a high value fills upward and is
+   cerise. Showing it low would teach the old rule. */
 const ITEMS = [
-  { perf: PERF.STRONG, dev: 0.85, label: "Clearly better", hint: "top of the peer set" },
+  { perf: PERF.STRONG, dev: 0.85, label: "Clearly better", hint: "on the good side of it" },
   { perf: PERF.MID, dev: 0.18, label: "Near the benchmark", hint: "within the middle band" },
-  { perf: PERF.WEAK, dev: -0.85, label: "Clearly worse", hint: "bottom of the peer set" },
-  // Shown filled, because these glyphs are filled: they still report position
-  // against the benchmark. What they withhold is the verdict, not the reading.
-  { perf: PERF.NEUTRAL, dev: 0.7, label: "Neutral", hint: "position shown, but neither end is better" },
+  { perf: PERF.WEAK, dev: 0.85, label: "Clearly worse", hint: "on the bad side of it" },
+  { perf: PERF.NEUTRAL, dev: 0.7, label: "Neutral", hint: "neither end is better" },
   { perf: PERF.NONE, dev: 0, label: "No recent data", hint: "not measured lately" },
 ];
 
@@ -39,6 +41,10 @@ export default function Legend() {
           </div>
         </div>
       ))}
+      <div style={{ fontSize: "14px", color: "var(--warm-grey)", lineHeight: 1.3,
+                    borderLeft: "2px solid var(--rule)", paddingLeft: 14 }}>
+        Fill shows where the value sits.<br />Colour says whether that is good.
+      </div>
     </div>
   );
 }

@@ -47,8 +47,13 @@ function percentileRank(sorted, v) {
   }
   let hiIdx = lo;
   while (hiIdx < sorted.length && sorted[hiIdx] === v) hiIdx++;
+  // (below + tied/2) / n — the standard mid-rank definition, bounded (0,1).
+  // This used to divide by n-1, which let the largest value score above 1.0
+  // (7.5/7 = 1.07 in an eight-item set). Nothing caught it because the glyph
+  // clamped the overflow away; now that fill position carries magnitude rather
+  // than a verdict, an out-of-range rank is a wrong mark, not a wasted one.
   const mid = (lo + hiIdx) / 2;
-  return sorted.length === 1 ? 0.5 : mid / (sorted.length - 1 || 1);
+  return sorted.length === 1 ? 0.5 : mid / sorted.length;
 }
 
 export function median(nums) {
@@ -104,12 +109,37 @@ export function buildScalesFromRows(rows, indicators) {
  * whether the underlying metric goes up or down to get there — that inversion
  * is the whole point.
  */
+/**
+ * Score one row/metric into two INDEPENDENT channels.
+ *
+ *   deviation  -1…+1  WHERE the value sits relative to the benchmark.
+ *                     Positive means higher, full stop. Not "better".
+ *   perf              WHETHER that is good, via `goodness`.
+ *
+ * These used to be the same number, and fill position was just colour drawn
+ * again: a country with high homicides filled DOWNWARD because high homicides
+ * are bad. That is a defensible convention and it costs the reader the one
+ * thing the mark is best at showing — magnitude. A reader scanning the
+ * homicide column could not see which countries had a lot of homicides, only
+ * which ones were doing badly, and had to already know the direction of the
+ * metric to translate back.
+ *
+ * Now the fill answers "higher or lower than the benchmark, and by how much"
+ * for every metric alike, and colour carries the verdict on top of it. High
+ * homicides fill upward, in cerise: a lot, and that is bad.
+ *
+ * The cost is real and worth stating: the two channels were previously
+ * redundant, so the verdict survived colour-blindness through position alone.
+ * It no longer does. Colour is now the only channel carrying "good or bad",
+ * which is why every column header names its direction and the legend leads
+ * with a high-and-bad example rather than a low-and-bad one.
+ */
 export function score(rec, ind, scale) {
   if (!rec || rec.v == null || !scale || !scale.n) {
     return { perf: PERF.NONE, goodness: null, deviation: 0, rank: null };
   }
 
-  let goodness;
+  let goodness, deviation;
   if (ind.direction === "band" && ind.targetBand) {
     // Distance from an explicit target band, normalized by the band's own width.
     const [lo, hi] = ind.targetBand;
@@ -119,13 +149,18 @@ export function score(rec, ind, scale) {
     // distance measured in band-widths, so 2% and 3% both read as "on target"
     // while 9% and 40% are both clearly off it.
     goodness = outside === 0 ? 1 : 0.5 * Math.exp(-outside / (width * 2));
+    // Position is signed distance from the TARGET, so the band's two failure
+    // modes stop looking identical: 40% inflation fills upward and 0.1% fills
+    // downward, both cerise. Under the old scheme both were simply "low
+    // goodness" and drew the same glyph, which was the one place the mark
+    // actively hid something the reader needed.
+    const target = ind.target ?? (lo + hi) / 2;
+    deviation = Math.tanh((rec.v - target) / (width * 2));
   } else {
     const p = percentileRank(scale.sorted, rec.v);
     goodness = ind.direction === "down" ? 1 - p : p;
+    deviation = (p - 0.5) * 2;          // higher value ⇒ fill above, always
   }
-
-  const rank = ind.direction === "band" ? null : percentileRank(scale.sorted, rec.v);
-  const deviation = (goodness - 0.5) * 2; // -1 … +1, signed distance from benchmark
 
   let perf;
   if (ind.direction === "none") perf = PERF.NEUTRAL;
@@ -133,6 +168,7 @@ export function score(rec, ind, scale) {
   else if (goodness >= 0.38) perf = PERF.MID;
   else perf = PERF.WEAK;
 
+  const rank = ind.direction === "band" ? null : percentileRank(scale.sorted, rec.v);
   return { perf, goodness, deviation, rank };
 }
 
@@ -238,7 +274,9 @@ export function scoreRow(rec, ind, scale, bm) {
     const signed = ind.direction === "down" ? -rel : rel;
     const goodness = 0.5 + 0.5 * Math.tanh(signed / WORLD_SPREAD);
     const perf = goodness >= 0.62 ? PERF.STRONG : goodness >= 0.38 ? PERF.MID : PERF.WEAK;
-    return { perf, goodness, deviation: (goodness - 0.5) * 2, rank: null };
+    // Fill follows the raw comparison, not the verdict — see score() above.
+    const deviation = Math.tanh(rel / WORLD_SPREAD);
+    return { perf, goodness, deviation, rank: null };
   }
 
   return score(rec, ind, scale);   // peer median, or an explicit target band

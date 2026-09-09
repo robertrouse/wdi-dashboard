@@ -4,14 +4,19 @@ import { PERF } from "../lib/kpi.js";
    The performance glyph.
 
    A circle whose filled portion sits above or below the horizontal midline.
-   Fill above the line = better than the benchmark; below = worse. How much of
-   the circle is filled encodes how far from the benchmark, on the normalized
-   0-1 scale — so a $29T GDP and a 2.1% inflation rate produce glyphs that can
-   be compared directly, which raw numbers never could.
 
-   Colour carries the same information redundantly (never colour alone), and
-   the midline itself is drawn so "at the benchmark" is legible as a state
-   rather than as an absence.
+   Fill = WHERE the value sits. Above the line is higher than the benchmark,
+   below is lower, and how much is filled is how far — on a normalized scale
+   every metric shares, so a $29T GDP and a 2.1% inflation rate produce glyphs
+   that can be compared directly, which raw numbers never could.
+
+   Colour = WHETHER that is good. The two are independent: high homicides fill
+   upward in cerise (a lot, and bad), low homicides fill downward in blue.
+   Fill and colour used to say the same thing twice, which made the mark unable
+   to show magnitude on any metric where less is better.
+
+   The midline is drawn so "at the benchmark" reads as a state rather than as
+   an absence.
    -------------------------------------------------------------------------- */
 
 const FILL = {

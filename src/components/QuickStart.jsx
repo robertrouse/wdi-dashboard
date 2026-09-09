@@ -45,10 +45,15 @@ function markSeen() {
    Position still gets named on the two rows that have one — "above the line",
    "below". Colour is never the only channel in the table, and an explanation
    that leaned on the swatch alone would quietly make it the only channel here. */
+/* Shows the combinations, not the channels one at a time. An earlier cut had a
+   cerise "Below it" row sitting above a cerise "high, and bad" row: the same
+   colour teaching two different lessons, the first of them the old rule this
+   convention just replaced. Above-and-good, above-and-bad, below-and-good is
+   the minimum set that makes fill and colour visibly independent. */
 const ICONS = [
-  { perf: PERF.STRONG,  deviation: 0.8,  text: "Above the line — better" },
-  { perf: PERF.MID,     deviation: 0.2,  text: "Near the benchmark" },
-  { perf: PERF.WEAK,    deviation: -0.8, text: "Below — worse" },
+  { perf: PERF.STRONG,  deviation: 0.8,  text: "Above the benchmark, and good" },
+  { perf: PERF.WEAK,    deviation: 0.8,  text: "Above, but bad \u2014 where less is better" },
+  { perf: PERF.STRONG,  deviation: -0.8, text: "Below, and good" },
   { perf: PERF.NEUTRAL, deviation: 0.7,  text: "Neither better nor worse" },
   { perf: PERF.NONE,    deviation: 0,    text: "No recent data" },
 ];
@@ -149,8 +154,8 @@ export default function QuickStart({ onClose }) {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: "16px", color: "var(--warm-grey)", marginTop: 8 }}>
-            More fill = further from the benchmark.
+          <div style={{ fontSize: "16px", color: "var(--warm-grey)", marginTop: 8, lineHeight: 1.4 }}>
+            Fill = position. Colour = verdict. More fill, further away.
           </div>
 
           <div className="eyebrow" style={{ color: "var(--blue-maven)", marginTop: 24 }}>What to click</div>

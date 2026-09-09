@@ -1,11 +1,15 @@
 /* --------------------------------------------------------------------------
    Change since the previous measurement.
 
-   Two independent facts are shown at once, because they come apart: the arrow
-   points the way the NUMBER moved, and the colour says whether that movement
-   was GOOD. Falling under-5 mortality is a down arrow in blue; falling life
-   expectancy is a down arrow in cerise. Readers who ignore colour still get the
-   direction; readers who ignore the arrow still get the judgement.
+   Two independent facts are shown at once, because they come apart: the SIGN
+   says which way the number moved, and the COLOUR says whether that movement
+   was good. Falling under-5 mortality is a minus in blue; falling life
+   expectancy is a minus in cerise.
+
+   There used to be an arrow beside the sign. It was the same fact drawn twice
+   — an up arrow never appeared next to a minus — so it spent horizontal room
+   in the narrowest column on the page to say nothing new. The sign carries it,
+   set large enough to read at a glance.
 
    The magnitude is a PERCENTAGE CHANGE for every metric except those already
    measured in percent, which report percentage POINTS instead — a percent
@@ -22,7 +26,7 @@
    secondary information — "how did it move" is half of what this dashboard is
    asked, so it is set at the same weight as "where is it now" rather than
    whispered underneath. */
-export default function DeltaArrow({ d, ind, showLabel = true, size = 20, fontSize = "var(--t-value)" }) {
+export default function DeltaArrow({ d, ind, showLabel = true, fontSize = "26px" }) {
   // No previous reading at all is a different statement from "it did not move".
   if (!d || d.abs == null) {
     return <span style={{ color: "var(--neutral-grey)", fontSize }}>—</span>;
@@ -77,15 +81,9 @@ export default function DeltaArrow({ d, ind, showLabel = true, size = 20, fontSi
   }
 
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color, fontWeight: 500, whiteSpace: "nowrap" }}>
-      <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" style={{ flexShrink: 0 }}>
-        <path
-          d={d.dir > 0 ? "M8 2.5 L13.5 9.5 L9.6 9.5 L9.6 13.5 L6.4 13.5 L6.4 9.5 L2.5 9.5 Z"
-                       : "M8 13.5 L2.5 6.5 L6.4 6.5 L6.4 2.5 L9.6 2.5 L9.6 6.5 L13.5 6.5 Z"}
-          fill={color}
-        />
-      </svg>
-      {showLabel && <span className="tabular" style={{ fontSize }}>{text}</span>}
+    <span className="tabular"
+          style={{ color, fontWeight: 500, whiteSpace: "nowrap", fontSize, letterSpacing: "-0.01em" }}>
+      {showLabel ? text : text.slice(0, 1)}
     </span>
   );
 }
