@@ -39,6 +39,30 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+
+      # data/indicators.json is the source of truth for indicator metadata, but
+      # the app never reads it — the build embeds a copy into the data bundle.
+      # Editing the glossary without rebuilding the bundle therefore changes
+      # nothing on the page and gives no error, which is a silent way to ship
+      # stale definitions and caveats. Both data paths copy the file verbatim,
+      # so any drift means the bundle was not rebuilt.
+      - name: Indicator metadata matches the bundle
+        run: |
+          node -e '
+            const a = require("./data/indicators.json");
+            const b = require("./public/data/wdi.json").indicators;
+            if (JSON.stringify(a) !== JSON.stringify(b)) {
+              console.error("data/indicators.json and public/data/wdi.json disagree.");
+              console.error("Rebuild the bundle: npm run refresh (or scripts/build_data.py).");
+              const ids = new Set([...a, ...b].map(i => i.id));
+              for (const id of ids) {
+                const x = a.find(i => i.id === id), y = b.find(i => i.id === id);
+                if (JSON.stringify(x) !== JSON.stringify(y)) console.error("  differs:", id);
+              }
+              process.exit(1);
+            }
+            console.log(`ok — ${a.length} indicators in sync`);
+          '
       # BASE_PATH must match the repository name so asset URLs resolve under
       # https://<user>.github.io/<repo>/. Derived from the repo itself so
       # renaming it does not silently break the deploy.

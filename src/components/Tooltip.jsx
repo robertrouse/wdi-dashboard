@@ -28,6 +28,12 @@ const TOOLTIP_Z = 200;
 
 export default function Tooltip({ children, content, width = 400, cursor = "help" }) {
   const [open, setOpen] = useState(false);
+  const closeTimer = useRef(null);
+  const hold = () => { clearTimeout(closeTimer.current); setOpen(true); };
+  const release = () => {
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 140);
+  };
   const [pos, setPos] = useState({ left: 0, top: 0, place: "below" });
   const anchorRef = useRef(null);
 
@@ -45,10 +51,10 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
     <>
       <span
         ref={anchorRef}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onMouseEnter={hold}
+        onMouseLeave={release}
+        onFocus={hold}
+        onBlur={release}
         tabIndex={0}
         style={{ display: "inline-flex", alignItems: "center", cursor, outlineOffset: 3 }}
       >
@@ -57,6 +63,8 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
       {open && content && createPortal(
         <div
           role="tooltip"
+          onMouseEnter={hold}
+          onMouseLeave={release}
           style={{
             position: "fixed",
             left: pos.left,
@@ -71,7 +79,17 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
             borderRadius: "var(--radius)",
             boxShadow: "0 12px 40px rgba(10,16,68,.20)",
             padding: "16px 18px 18px",
-            pointerEvents: "none",
+            /* The caveats are the World Bank's own words, reproduced exactly,
+               and the longest runs to 3,295 characters. Truncating it would
+               make it no longer the source's text, so the CARD gives instead:
+               it caps at 60% of the viewport and scrolls. Which means it has
+               to accept the pointer — hence the enter/leave handling below,
+               and a short grace period so the mouse can travel from the anchor
+               to the card without it vanishing en route. */
+            maxHeight: "60vh",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            pointerEvents: "auto",
             textAlign: "left",
             fontWeight: 300,
           }}
@@ -96,19 +114,24 @@ export function IndicatorCard({ ind, extra }) {
       <div style={{ fontSize: "15.5px", lineHeight: 1.5, color: "var(--ink-soft)", marginTop: 8 }}>
         {ind.definition}
       </div>
-      <div
-        style={{
-          marginTop: 12,
-          paddingTop: 10,
-          borderTop: "1px solid var(--rule)",
-          fontSize: "15px",
-          lineHeight: 1.45,
-          color: "var(--warm-grey)",
-        }}
-      >
-        <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
-        {ind.caveat}
-      </div>
+      {/* Only when the World Bank publishes one. Three of the fifteen have no
+          "Limitations and exceptions" entry at all, and an empty "Read with
+          care ·" was asserting a caveat that does not exist. */}
+      {ind.caveat && (
+        <div
+          style={{
+            marginTop: 12,
+            paddingTop: 10,
+            borderTop: "1px solid var(--rule)",
+            fontSize: "15px",
+            lineHeight: 1.45,
+            color: "var(--warm-grey)",
+          }}
+        >
+          <span style={{ fontWeight: 600, color: "var(--red-cerise)" }}>Read with care · </span>
+          {ind.caveat}
+        </div>
+      )}
       <div style={{ marginTop: 10, fontSize: "13.5px", color: "var(--neutral-grey)" }}>
         {ind.code} · {ind.periodicity || "Annual"} · higher is{" "}
         {ind.direction === "up" ? "better" : ind.direction === "down" ? "worse" : ind.direction === "band" ? `off-target (aim ≈ ${ind.target}%)` : "neither"}
