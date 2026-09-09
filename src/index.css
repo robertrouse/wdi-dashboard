@@ -170,22 +170,21 @@ button, input, select { font-family: inherit; font-size: inherit; color: inherit
 }
 
 /* ==========================================================================
-   Buttons — the pill from action.co.
+   The quick start's dismiss button — the action.co pill.
 
-   Measured off the brand examples rather than eyeballed: the shape is a full
-   pill (radius = half the height), horizontal padding runs about 0.9x the
-   height, and on hover the fill darkens to Blue Maven's BM5 shade and a 2px
-   white rule appears along the bottom.
+   Shape and colour taken from the brand examples: a full pill (radius is half
+   the height), horizontal padding about 0.86x the height, Blue Maven darkening
+   to its BM5 shade on hover.
 
-   That rule is inset by exactly the corner radius on each side — it spans the
-   flat segment between the two end caps and stops where the curve begins,
-   which is why it reads as an underline rather than a border. `--btn-h` drives
-   the height, the radius and that inset together so they cannot drift apart.
+   Deliberately WITHOUT the white underline the site shows on hover, and
+   deliberately the only button here wearing this shape. The rest of the
+   dashboard's controls keep their own quieter treatment — a table of fifteen
+   metrics is not a landing page, and a marketing call-to-action repeated on
+   every control would read as one.
    ========================================================================== */
 
-.btn {
+.btn-primary {
   --btn-h: 46px;
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -193,55 +192,17 @@ button, input, select { font-family: inherit; font-size: inherit; color: inherit
   padding: 0 calc(var(--btn-h) * 0.86);
   border: none;
   border-radius: calc(var(--btn-h) / 2);
+  background: var(--blue-maven);
+  color: var(--white);
   font-family: inherit;
   font-size: 17px;
   font-weight: 600;
   line-height: 1;
-  white-space: nowrap;
   cursor: pointer;
-  text-decoration: none;
-  transition: background-color .14s ease, color .14s ease;
+  transition: background-color .14s ease;
 }
 
-/* The underline. Inset by the radius so it tracks the pill's straight edge. */
-.btn::after {
-  content: "";
-  position: absolute;
-  left: calc(var(--btn-h) / 2);
-  right: calc(var(--btn-h) / 2);
-  bottom: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: currentColor;
-  opacity: 0;
-  transition: opacity .14s ease;
-}
+.btn-primary:hover,
+.btn-primary:focus-visible { background: #2A2AC6; }   /* Blue Maven BM5 */
 
-.btn:hover::after,
-.btn:focus-visible::after { opacity: 1; }
-
-.btn--primary   { background: var(--blue-maven); color: var(--white); }
-.btn--primary:hover,
-.btn--primary:focus-visible { background: #2A2AC6; }          /* Blue Maven BM5 */
-
-.btn--secondary { background: var(--warm-grey); color: var(--white); }
-.btn--secondary:hover,
-.btn--secondary:focus-visible { background: #3E5666; }        /* Warm Grey, one step down */
-
-/* Same shape and same underline, no fill — for actions that sit on the dark
-   header bar, where two filled pills side by side would outweigh the title. */
-.btn--ghost {
-  background: transparent;
-  color: var(--blue-ice);
-  font-weight: 500;
-}
-.btn--ghost:hover,
-.btn--ghost:focus-visible { background: rgba(0, 206, 234, .12); }
-
-.btn--sm { --btn-h: 34px; font-size: 15px; }
-.btn--xs { --btn-h: 26px; font-size: 13.5px; padding: 0 12px; }
-.btn--xs::after { left: 10px; right: 10px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .btn, .btn::after { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .btn-primary { transition: none; } }

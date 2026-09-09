@@ -106,7 +106,14 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
           </h2>
           {row.sub && <div style={{ fontSize: "16px", color: "var(--raven-2)", marginTop: 2 }}>{row.sub}</div>}
         </div>
-        <button onClick={onClose} className="btn btn--secondary btn--sm">
+        <button
+          onClick={onClose}
+          style={{
+            background: "transparent", color: "var(--blue-ice)",
+            border: "1.5px solid var(--blue-ice)", borderRadius: 8,
+            padding: "8px 16px", fontSize: "15px", cursor: "pointer",
+          }}
+        >
           Close detail
         </button>
       </header>

@@ -338,10 +338,16 @@ export default function App() {
           <>
           <button
             onClick={() => setQuickStart(true)}
-            className="btn btn--ghost btn--sm"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              background: "transparent", color: "var(--blue-ice)",
+              border: "1.5px solid transparent", borderRadius: 8,
+              padding: "6px 10px", fontSize: "15px", fontWeight: 400,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
           >
-            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" style={{ marginRight: 7 }}>
-              <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" strokeWidth="1.4" />
               <path d="M6.1 6.1a1.95 1.95 0 1 1 2.3 2.5v1" fill="none" stroke="currentColor"
                     strokeWidth="1.5" strokeLinecap="round" />
               <circle cx="8" cy="11.6" r=".85" fill="currentColor" />
@@ -351,13 +357,15 @@ export default function App() {
           <button
             onClick={() => setFiltersOpen(true)}
             aria-expanded={filtersOpen}
-            /* Filled, where "How to use" is a ghost: the reference pairs a
-               solid primary with a solid secondary, and Filters is the control
-               that has to look pressable from across the bar. As a ghost it
-               read as a text label. */
-            className="btn btn--secondary btn--sm"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "transparent", color: "var(--blue-ice)",
+              border: "1.5px solid var(--blue-ice)", borderRadius: 8,
+              padding: "6px 14px", fontSize: "15px", fontWeight: 500,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style={{ marginRight: 7 }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
               <path d="M1 3h14M4 8h8M6.5 13h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
             Filters
@@ -365,7 +373,7 @@ export default function App() {
               <span style={{
                 background: "var(--blue-ice)", color: "var(--blue-raven)",
                 borderRadius: 999, fontSize: "12px", fontWeight: 600,
-                minWidth: 18, textAlign: "center", padding: "1px 5px", marginLeft: 7,
+                minWidth: 18, textAlign: "center", padding: "1px 5px",
               }}>{activeFilterCount}</span>
             )}
           </button>

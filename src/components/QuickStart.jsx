@@ -178,7 +178,7 @@ export default function QuickStart({ onClose }) {
         </div>
 
         <div style={{ padding: "6px 34px 24px", display: "flex", justifyContent: "flex-end" }}>
-          <button onClick={onClose} className="btn btn--primary">
+          <button onClick={onClose} className="btn-primary">
             Got it
           </button>
         </div>
