@@ -104,3 +104,67 @@ button, input, select { font-family: inherit; font-size: inherit; color: inherit
 ::-webkit-scrollbar { width: 12px; height: 12px; }
 ::-webkit-scrollbar-thumb { background: var(--neutral-grey); border-radius: 8px; border: 3px solid var(--background); }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ==========================================================================
+   Modal scrim — the brand's headshot glow, applied to a backdrop.
+
+   The brand book (p.53) describes the Actionaut treatment as two separate
+   moves: "the background is removed, a subtle blue glow is added behind the
+   subject, and they get placed into a circular line art graphic." Only the
+   first transfers here. Page 55 is explicit that the treatment must not be
+   used "to frame photos that do not feature individual people", so the
+   helmet ring stays with the portraits; the glow is what makes a modal read
+   as lit from behind rather than merely floating on a grey wash.
+
+   Two stacked radials, matching the falloff sampled from an Actionaut
+   headshot: a Blue Maven core behind the panel, over a Blue Raven wash that
+   deepens toward the corners (#0B1141 at the edge in the source, essentially
+   Blue Raven itself).
+   ========================================================================== */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(56% 44% at 50% 42%,
+      rgba(70, 85, 228, 0.55) 0%,
+      rgba(42, 42, 198, 0.26) 46%,
+      rgba(10, 16, 68, 0) 72%),
+    radial-gradient(125% 105% at 50% 50%,
+      rgba(13, 19, 72, 0.60) 0%,
+      rgba(8, 12, 52, 0.88) 100%);
+  animation: scrim-in 220ms ease-out both;
+}
+
+/* The drawer sits at the right edge rather than centre screen, so its glow is
+   anchored there — a centred one would light the table instead of the panel.
+   It also dims far less than the modals do: the drawer is a side panel the
+   reader uses WHILE consulting the table, so the table has to stay readable
+   behind it. Matching the modal weight here washed it out. */
+.scrim--drawer {
+  background:
+    radial-gradient(58% 68% at 90% 50%,
+      rgba(70, 85, 228, 0.26) 0%,
+      rgba(42, 42, 198, 0.11) 52%,
+      rgba(10, 16, 68, 0) 78%),
+    radial-gradient(125% 105% at 50% 50%,
+      rgba(13, 19, 72, 0.16) 0%,
+      rgba(8, 12, 52, 0.34) 100%);
+}
+
+@keyframes scrim-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* The panel itself rises a little into the glow. */
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+.panel-in { animation: panel-in 240ms cubic-bezier(.2,.7,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim, .panel-in { animation: none; }
+}

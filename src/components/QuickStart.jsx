@@ -90,9 +90,9 @@ export default function QuickStart({ onClose }) {
   return createPortal(
     <div
       onClick={onClose}
+      className="scrim"
       style={{
-        position: "fixed", inset: 0, zIndex: 120,
-        background: "rgba(10,16,68,.45)",
+        zIndex: 120,
         display: "grid", placeItems: "center", padding: 20,
       }}
     >
@@ -103,6 +103,7 @@ export default function QuickStart({ onClose }) {
         aria-modal="true"
         aria-labelledby="qs-title"
         onClick={(e) => e.stopPropagation()}
+        className="panel-in"
         style={{
           background: "var(--white)", borderRadius: 14, maxWidth: 540, width: "100%",
           maxHeight: "88vh", overflowY: "auto", outline: "none",

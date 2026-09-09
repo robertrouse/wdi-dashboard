@@ -62,15 +62,16 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
       aria-modal="true"
       aria-label={`${row.label} detail`}
       onClick={onClose}
+      className="scrim"
       style={{
-        position: "fixed", inset: 0, zIndex: 90,
-        background: "rgba(10,16,68,.42)",
+        zIndex: 90,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "24px",
       }}
     >
     <section
       onClick={(e) => e.stopPropagation()}
+      className="panel-in"
       style={{
         background: "var(--white)", borderRadius: "var(--radius)",
         boxShadow: "0 24px 70px rgba(10,16,68,.34)", border: "1px solid var(--rule)",

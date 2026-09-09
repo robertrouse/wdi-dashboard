@@ -426,7 +426,8 @@ export default function App() {
       {filtersOpen && (
         <div
           onClick={() => setFiltersOpen(false)}
-          style={{ position: "fixed", inset: 0, zIndex: 75, background: "rgba(10,16,68,.28)" }}
+          className="scrim scrim--drawer"
+          style={{ zIndex: 75 }}
         >
           <FilterPanel
             bundle={bundle}
