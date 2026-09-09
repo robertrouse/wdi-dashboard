@@ -16,6 +16,13 @@ import { useMemo, useState } from "react";
    the whole argument of the chapter: every control here changes what the same
    components render rather than switching to a different sheet.
 
+   No explanatory subtext under the controls. Every line of it restated what
+   the control's own label already said, or what the reader finds out faster by
+   flipping the switch and watching the table — "One row per country, grouped
+   by region" under a radio labelled "Countries" is a caption for a picture the
+   reader is already looking at. The hover titles on the preset chips and the
+   metric chips stay: those carry facts the label genuinely cannot.
+
    It sits behind a button rather than permanently on screen because it cost
    318px of width that the glyph matrix wanted — with it open the rightmost
    metric columns fell off into the horizontal scroller. The button carries a
@@ -49,16 +56,13 @@ const S = {
   },
 };
 
-function Radio({ name, value, checked, onChange, label, hint }) {
+function Radio({ name, value, checked, onChange, label }) {
   return (
     <label style={S.radioRow}>
       <input type="radio" name={name} value={value} checked={checked}
              onChange={() => onChange(value)}
              style={{ accentColor: "var(--blue-maven)", width: 17, height: 17, flexShrink: 0 }} />
-      <span>
-        <span style={{ fontWeight: checked ? 500 : 300 }}>{label}</span>
-        {hint && <span style={{ display: "block", fontSize: "13.5px", color: "var(--warm-grey)", lineHeight: 1.3 }}>{hint}</span>}
-      </span>
+      <span style={{ fontWeight: checked ? 500 : 300 }}>{label}</span>
     </label>
   );
 }
@@ -181,18 +185,12 @@ export default function FilterPanel({
           }}>
           {indicators.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
         </select>
-        <p style={{ fontSize: "13.5px", color: "var(--warm-grey)", margin: "8px 0 0", lineHeight: 1.4 }}>
-          The focus metric gets the value, change and trend columns. All other
-          metrics stay visible as glyphs.
-        </p>
       </div>
 
       <div style={S.section}>
-        <span style={S.h}>View level</span>
-        <Radio name="view" value="country" checked={view === "country"} onChange={setView}
-               label="Countries" hint="One row per country, grouped by region" />
-        <Radio name="view" value="region" checked={view === "region"} onChange={setView}
-               label="Regions" hint="The World Bank's own published subtotal for each region" />
+        <span style={S.h}>View</span>
+        <Radio name="view" value="country" checked={view === "country"} onChange={setView} label="Countries" />
+        <Radio name="view" value="region" checked={view === "region"} onChange={setView} label="Regions" />
       </div>
 
       <div style={S.section}>
@@ -243,7 +241,7 @@ export default function FilterPanel({
 
 
       <div style={S.section}>
-        <span style={S.h}>Metrics in the matrix</span>
+        <span style={S.h}>Metrics</span>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {indicators.map((i) => (
             <button key={i.id} onClick={() => toggleIndicator(i.id)}
@@ -255,16 +253,11 @@ export default function FilterPanel({
       </div>
 
       <div style={S.section}>
-        <span style={S.h}>Attention filter</span>
+        <span style={S.h}>Show only</span>
         <label style={S.radioRow}>
           <input type="checkbox" checked={onlyWeak} onChange={(e) => setOnlyWeak(e.target.checked)}
                  style={{ accentColor: "var(--red-cerise)", width: 17, height: 17, flexShrink: 0 }} />
-          <span>
-            <span style={{ fontWeight: onlyWeak ? 500 : 300 }}>Only rows below benchmark</span>
-            <span style={{ display: "block", fontSize: "13.5px", color: "var(--warm-grey)", lineHeight: 1.3 }}>
-              on the focus metric
-            </span>
-          </span>
+          <span style={{ fontWeight: onlyWeak ? 500 : 300 }}>Rows below the benchmark</span>
         </label>
       </div>
     </aside>
