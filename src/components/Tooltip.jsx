@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { excerpt } from "../lib/format.js";
 import { createPortal } from "react-dom";
 
@@ -27,14 +27,37 @@ import { createPortal } from "react-dom";
 // topmost thing on screen whenever it is open, including inside those.
 const TOOLTIP_Z = 200;
 
+/* A touch screen has no hover, so it synthesises one on tap — and this card
+   takes the pointer (it has to, so it can be scrolled and its text selected).
+   The result on a phone is that the first tap opens a card that then swallows
+   the second, which is how a header stops being tappable. On a coarse pointer
+   the card is simply not shown: tapping a heading does the thing it advertises
+   instead, and the definitions are still reachable in the row detail. */
+function useCoarsePointer() {
+  const [coarse, setCoarse] = useState(
+    () => typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia?.("(pointer: coarse)");
+    if (!mq) return;
+    const on = (e) => setCoarse(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return coarse;
+}
+
 export default function Tooltip({ children, content, width = 400, cursor = "help" }) {
+  const coarse = useCoarsePointer();
   const [open, setOpen] = useState(false);
-  const closeTimer = useRef(null);
-  const hold = () => { clearTimeout(closeTimer.current); setOpen(true); };
-  const release = () => {
-    clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpen(false), 140);
-  };
+  /* No grace period, and the card does not take the pointer. Both existed so
+     a long card could be scrolled, which mattered when it carried the Bank's
+     full limitations text; it carries a short written summary now. What they
+     cost was worth more: crossing fifteen glyph columns, every card lingered
+     140ms and the card itself sat under the cursor, so moving to the next icon
+     fought the last one. Hover in, hover out, immediately. */
+  const hold = () => { if (!coarse) setOpen(true); };
+  const release = () => setOpen(false);
   const [pos, setPos] = useState({ left: 0, top: 0, place: "below" });
   const anchorRef = useRef(null);
 
@@ -57,15 +80,13 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
         onFocus={hold}
         onBlur={release}
         tabIndex={0}
-        style={{ display: "inline-flex", alignItems: "center", cursor, outlineOffset: 3 }}
+        style={{ display: "inline-flex", alignItems: "center", cursor: coarse ? "pointer" : cursor, outlineOffset: 3 }}
       >
         {children}
       </span>
-      {open && content && createPortal(
+      {open && !coarse && content && createPortal(
         <div
           role="tooltip"
-          onMouseEnter={hold}
-          onMouseLeave={release}
           style={{
             position: "fixed",
             left: pos.left,
@@ -80,15 +101,13 @@ export default function Tooltip({ children, content, width = 400, cursor = "help
             borderRadius: "var(--radius)",
             boxShadow: "0 12px 40px rgba(10,16,68,.20)",
             padding: "16px 18px 18px",
-            /* The card shows a verbatim EXCERPT of the limitations, so it is
-               short by construction. The cap is a backstop for a long
-               definition, not the main event. It accepts the pointer so the
-               text can be selected and so the card survives the mouse
-               travelling to it — hence the grace period below. */
-            maxHeight: "60vh",
-            overflowY: "auto",
-            overscrollBehavior: "contain",
-            pointerEvents: "auto",
+            /* The card is short by construction — a written definition and a
+               written caveat, never the Bank's full text — so it does not need
+               to scroll and does not take the pointer. The cap is a backstop,
+               nothing more. */
+            maxHeight: "72vh",
+            overflow: "hidden",
+            pointerEvents: "none",
             textAlign: "left",
             fontWeight: 300,
           }}

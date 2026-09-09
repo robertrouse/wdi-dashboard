@@ -100,6 +100,30 @@ Source material lives in the parent folder `../`:
     no standing text. The detail modal carries no caveat text either: fifteen
     repeated paragraphs pushed the numbers off screen. One place, one question.
 
+10b. **The matrix never scrolls sideways.** Scanning ACROSS a row is the whole
+    reading, and a horizontal scrollbar hides two-thirds of the data without
+    admitting it. `src/lib/useLayout.js` returns one of four tiers, measured
+    against what the table actually needs rather than device names:
+
+    | tier | from | what it shows |
+    |------|------|----------------|
+    | `lg` | 1280 | all fifteen glyph columns + the sparkline |
+    | `md` | 1010 | all fifteen glyph columns, no sparkline, tighter columns |
+    | `sm` | 560  | focus columns + sparkline, no matrix |
+    | `xs` | 0    | country, value, change |
+
+    1280 is not a round number picked for familiarity: the full table's natural
+    minimum is 1214px, plus 24px page padding either side. `md` exists because
+    between 1010 and 1280 — 1024 and 1152 laptops, iPad landscape — giving up
+    one sparkline to keep fifteen columns is the better trade. Below 1010 the
+    matrix is dropped rather than squeezed; the focus columns and the metric
+    picker still answer the question, one metric at a time.
+
+    If you change a column width, a font size or the sparkline width, re-measure
+    and move the breakpoints. Verified clean at 375, 390, 430, 560, 768, 1010,
+    1024, 1152, 1279, 1280, 1440 and 1920. 320px (2016 iPhone SE) still runs
+    ~26px over, which is the country and value columns at their readable floor.
+
 11. **Aggregate rows are shown, but never set the benchmark — and they ARE the
     section head.** Each section opens with its regional aggregate (region view
     opens with the World). There is deliberately no separate heading row above

@@ -5,6 +5,7 @@ import Matrix from "./components/Matrix.jsx";
 import DetailPanel from "./components/DetailPanel.jsx";
 import FilterPanel from "./components/FilterPanel.jsx";
 import QuickStart, { hasSeenQuickStart } from "./components/QuickStart.jsx";
+import useLayout, { LG, XS } from "./lib/useLayout.js";
 import { buildScalesFromRows, regionRecord, worldRecord, benchmarkFor, scoreRow, PERF } from "./lib/kpi.js";
 import { DATASET_URL } from "./lib/sources.js";
 import { readUrlState, writeUrlState } from "./lib/urlState.js";
@@ -62,6 +63,7 @@ function topPerRegion(bundle, key, n = PER_REGION) {
 }
 
 export default function App() {
+  const layout = useLayout();
   const [bundle, setBundle] = useState(null);
   const [err, setErr] = useState(null);
 
@@ -334,6 +336,7 @@ export default function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
       <Header
+        compact={layout === XS}
         actions={
           <>
           <button
@@ -387,7 +390,7 @@ export default function App() {
           which scrolls away with the page — instead of to the viewport. One
           scroller is what makes the column headers stay put. */}
       <main style={{ flex: 1, overflow: "auto", minWidth: 0 }}>
-        <div style={{ padding: "18px 24px 70px" }}>
+        <div style={{ padding: layout === LG ? "18px 24px 70px" : "14px 14px 56px" }}>
           <Legend />
 
           {rows.length === 0 ? (
@@ -402,10 +405,11 @@ export default function App() {
               selectedRow={detailRowId}
               onSelectRow={(r) => setDetailRowId(detailRowId === r.id ? null : r.id)}
               onFocusMetric={setFocusId}
+              layout={layout}
             />
           )}
 
-          <Method bundle={bundle} />
+          <Method bundle={bundle} layout={layout} />
         </div>
       </main>
 
@@ -486,11 +490,11 @@ const GLOSSARY = [
    "The World Bank's own classification, revised in 2024 when Pakistan and Afghanistan left South Asia."],
 ];
 
-function Method({ bundle }) {
+function Method({ bundle, layout }) {
   return (
     <section style={{ marginTop: 40, maxWidth: 900, fontSize: "16px", color: "var(--ink-soft)" }}>
       <h3 style={{ fontSize: "21px", marginBottom: 12 }}>Footnotes</h3>
-      <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(150px, 190px) 1fr", columnGap: 22 }}>
+      <dl style={{ margin: 0, display: "grid", gridTemplateColumns: layout === "xs" ? "1fr" : "minmax(150px, 190px) 1fr", columnGap: 22 }}>
         {GLOSSARY.map(([term, def]) => (
           <div key={term} style={{ display: "contents" }}>
             <dt style={{ fontWeight: 600, color: "var(--ink)", padding: "7px 0", lineHeight: 1.4 }}>{term}</dt>

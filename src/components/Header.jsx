@@ -8,23 +8,23 @@ import ActionMark from "./ActionMark.jsx";
    under the table, so on the bar they were costing height to repeat things
    stated better elsewhere. */
 
-export default function Header({ actions }) {
+export default function Header({ actions, compact = false }) {
   return (
     <header
       style={{
         background: "var(--blue-raven)",
         color: "var(--white)",
-        padding: "10px 24px",
+        padding: compact ? "8px 14px" : "10px 24px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        gap: 20, flexWrap: "wrap",
+        gap: compact ? 10 : 20, flexWrap: "wrap",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: compact ? 9 : 13, minWidth: 0 }}>
         {/* White on Blue Raven is the treatment the brand book shows for the
             pictogram (p.14); eyes take the background so the tentacle lines
             behind them stay masked. */}
-        <ActionMark size={34} eyeFill="var(--blue-raven)" title="Action" />
-        <h1 style={{ fontSize: "23px", lineHeight: 1.1, margin: 0 }}>
+        <ActionMark size={compact ? 26 : 34} eyeFill="var(--blue-raven)" title="Action" />
+        <h1 style={{ fontSize: compact ? "17px" : "23px", lineHeight: 1.1, margin: 0 }}>
           World Development Indicators
         </h1>
       </div>

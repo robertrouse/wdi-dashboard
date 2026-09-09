@@ -80,9 +80,25 @@ function perfWord(perf, ind, bm, value, { share, isWorld } = {}) {
 }
 
 export default function Matrix({
-  rows, indicators, focus, scales, bundle, onSelectRow, selectedRow, onFocusMetric,
+  rows, indicators, focus, scales, bundle, onSelectRow, selectedRow, onFocusMetric, layout = "lg",
 }) {
-  const glyphInds = indicators;
+  /* Below the large tier the matrix is dropped rather than squeezed — see
+     useLayout for why a sideways scrollbar is the wrong answer here. */
+  const showGlyphs = layout === "lg" || layout === "md";
+  const showTrend = layout !== "xs" && layout !== "md";
+  /* The middle tier keeps all fifteen columns and pays for them with the
+     sparkline and narrower country, value and change columns — see useLayout. */
+  const md = layout === "md";
+  const glyphInds = showGlyphs ? indicators : [];
+  /* A phone gives ~360px of usable width for three columns. Everything below
+     buys that back without dropping a size below the 15px floor: the gutters
+     halve, the glyph loses 6px, the change text steps down from the value's
+     26px, and the row's sub-line — "Regional aggregate EAS · every economy in
+     the region" — is dropped, since it is context for a reader who has room
+     for it and a wrapped four-line paragraph for one who does not. */
+  const xs = layout === "xs";
+  const cell = xs ? { ...td, padding: "9px 3px" } : td;
+  const glyph = xs ? GLYPH_SIZE - 6 : GLYPH_SIZE;
   const regionView = rows.some((r) => r.kind === "region");
 
   /* A hairline where the category changes — Economy, People, Health & Education
@@ -95,13 +111,13 @@ export default function Matrix({
 
   return (
     <div style={{ paddingBottom: 8 }}>
-      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 900 }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: showGlyphs ? (md ? 0 : 900) : 0 }}>
         <thead>
           <tr>
-            <th style={{ ...th, textAlign: "left", minWidth: 210, paddingLeft: 4 }}>
+            <th style={{ ...th, textAlign: "left", minWidth: showGlyphs ? (md ? 150 : 210) : 92, paddingLeft: 4 }}>
               {regionView ? "Region" : "Country"}
             </th>
-            <th style={{ ...th, textAlign: "right", minWidth: 178 }}>
+            <th style={{ ...th, textAlign: "right", minWidth: xs ? 92 : layout === "lg" ? 178 : 132 }}>
               <Tooltip content={<IndicatorCard ind={focus} />}>
                 <span style={{ borderBottom: "1.5px dotted var(--blue-maven)" }}>
                   {focus.label}
@@ -118,10 +134,12 @@ export default function Matrix({
                 </span>
               )}
             </th>
-            <th style={{ ...th, textAlign: "right", minWidth: 148 }}>Change</th>
-            <th style={{ ...th, textAlign: "left", minWidth: 178, paddingLeft: 18 }}>
-              {bundle.yearSpan[0]}–{bundle.yearSpan[1]} trend
-            </th>
+            <th style={{ ...th, textAlign: "right", minWidth: showGlyphs ? (md ? 108 : 148) : xs ? 60 : 80 }}>Change</th>
+            {showTrend && (
+              <th style={{ ...th, textAlign: "left", minWidth: layout === "lg" ? 178 : 150, paddingLeft: layout === "lg" ? 18 : 10 }}>
+                {bundle.yearSpan[0]}–{bundle.yearSpan[1]} trend
+              </th>
+            )}
             {glyphInds.map((ind, gi) => {
               const isFocus = ind.id === focus.id;
               return (
@@ -210,17 +228,17 @@ export default function Matrix({
                   cursor: onSelectRow ? "pointer" : "default",
                 }}
               >
-                <td style={{ ...td, paddingLeft: 4 }}>
+                <td style={{ ...cell, paddingLeft: 4 }}>
                   <span style={{ fontSize: "17.5px", fontWeight: isSel || isAgg ? 600 : 400,
                                  color: isAgg ? "var(--blue-raven)" : undefined }}>{row.label}</span>
-                  {row.sub && (
+                  {!xs && row.sub && (
                     <span style={{ display: "block", fontSize: "13.5px", color: "var(--warm-grey)", lineHeight: 1.2 }}>
                       {row.sub}
                     </span>
                   )}
                 </td>
 
-                <td style={{ ...td, textAlign: "right" }}>
+                <td style={{ ...cell, textAlign: "right" }}>
                   {/* The focus metric gets the same hover card as every other
                       metric in the row. It used to carry only a native title
                       attribute, so the most prominent number on the page was
@@ -262,12 +280,12 @@ export default function Matrix({
                         </div>
                       )}
                     </div>
-                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={GLYPH_SIZE} />
+                    <KpiGlyph perf={sc.perf} deviation={sc.deviation} size={glyph} />
                   </div>
                   </Tooltip>
                 </td>
 
-                <td style={{ ...td, textAlign: "right" }}>
+                <td style={{ ...cell, textAlign: "right" }}>
                   {/* Built to the same block as the value cell so the two read
                       as one line: the figure sits in a band the height of the
                       glyph, and its "vs" caption gets the year's own size,
@@ -281,7 +299,7 @@ export default function Matrix({
                         an ordinary line box with the same leading seats both
                         figures on the same baseline instead. */}
                     <div style={{ lineHeight: VALUE_LEAD, fontSize: `${VALUE_SIZE}px` }}>
-                      <DeltaArrow d={dl} ind={focus} />
+                      <DeltaArrow d={dl} ind={focus} fontSize={xs ? "20px" : undefined} />
                     </div>
                     {dl.from && (
                       <div style={{ fontSize: `${YEAR_SIZE}px`, lineHeight: YEAR_LEAD,
@@ -292,21 +310,24 @@ export default function Matrix({
                   </div>
                 </td>
 
-                <td style={{ ...td, paddingLeft: 18 }}>
-                  <Sparkline
-                    points={rec?.t}
-                    reference={referenceFor(bundle, row, focus)}
-                    ind={focus}
-                    color={PERF_COLOR[sc.perf === PERF.NONE ? PERF.NONE : sc.perf]}
-                  />
-                </td>
+                {showTrend && (
+                  <td style={{ ...cell, paddingLeft: layout === "lg" ? 18 : 10 }}>
+                    <Sparkline
+                      points={rec?.t}
+                      width={layout === "lg" ? 168 : 132}
+                      reference={referenceFor(bundle, row, focus)}
+                      ind={focus}
+                      color={PERF_COLOR[sc.perf === PERF.NONE ? PERF.NONE : sc.perf]}
+                    />
+                  </td>
+                )}
 
                 {glyphInds.map((ind, gi) => {
                   const r2 = row.get(ind.id);
                   const bm2 = benchmarkFor(bundle, row, ind, scales[ind.id]);
                   const s2 = scoreRow(r2, ind, scales[ind.id], bm2);
                   return (
-                    <td key={ind.id} style={{ ...td, textAlign: "center", padding: "9px 3px",
+                    <td key={ind.id} style={{ ...cell, textAlign: "center", padding: "9px 3px",
                                               borderLeft: startsGroup(gi) ? GROUP_RULE : undefined }}>
                       <Tooltip
                         width={300}

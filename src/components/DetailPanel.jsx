@@ -108,13 +108,26 @@ export default function DetailPanel({ row, indicators, scales, bundle, onClose }
         </div>
         <button
           onClick={onClose}
+          aria-label="Close detail"
+          title="Close detail"
+          /* The same 44px icon target as the quick start. A labelled pill was
+             the only element competing with the country name for the eye at
+             the top of this panel, and closing is not the thing a reader came
+             here to do. */
           style={{
-            background: "transparent", color: "var(--blue-ice)",
-            border: "1.5px solid var(--blue-ice)", borderRadius: 8,
-            padding: "8px 16px", fontSize: "15px", cursor: "pointer",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 44, height: 44, flexShrink: 0, padding: 0,
+            background: "transparent", border: "none", borderRadius: 10,
+            color: "var(--blue-ice)", cursor: "pointer", lineHeight: 0,
+            transition: "background .12s ease",
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,206,234,.14)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
         >
-          Close detail
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
         </button>
       </header>
 
