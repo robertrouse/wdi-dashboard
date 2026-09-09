@@ -347,7 +347,7 @@ export default function App() {
                     strokeWidth="1.5" strokeLinecap="round" />
               <circle cx="8" cy="11.6" r=".85" fill="currentColor" />
             </svg>
-            How to read
+            How to use
           </button>
           <button
             onClick={() => setFiltersOpen(true)}
@@ -447,55 +447,59 @@ export default function App() {
   );
 }
 
+/* A glossary, not an essay.
+
+   This used to open by explaining the glyph and the sparkline in prose. The
+   quick start now does that job with the marks themselves sitting next to the
+   words, which is strictly better, so the prose version is gone. What is left
+   is the part a modal cannot carry: the handful of terms whose definitions are
+   decisions — what a benchmark IS here, why a region is not scored against its
+   own members, why inflation reads red at both ends. A reader comes back for
+   those; nobody comes back for a paragraph they already read once. */
+
+const GLOSSARY = [
+  ["Benchmark",
+   "A country is read against its region, a region against the World, inflation against its target band."],
+  ["Sparkline",
+   "Self-scaled — shape is comparable between rows, height is not. The dotted line is that row's benchmark."],
+  ["Change",
+   "Percent change, or percentage points for metrics already in percent. 4.0% to 4.4% is not \u201cup 10%\u201d."],
+  ["Regional aggregate",
+   "The Bank's published subtotal. Shown for reference, excluded from the country median it would otherwise move."],
+  ["Regions vs. countries",
+   "A region's GDP is the sum of its members, so it is scored against the World rather than against them."],
+  ["Share of the world",
+   "Where nothing can exceed the total \u2014 GDP, population, net migration \u2014 the glyph reports a share, not a verdict."],
+  ["Inflation",
+   "Scored against a band, so misses read red on both sides: 0.1% and 3.2% score alike."],
+  ["Row order",
+   "GDP descending, fixed. Switching the focus metric never reshuffles the table."],
+  ["Latest value",
+   "Each country's most recent reading. Not always the same year, which is why the year is printed beneath it."],
+  ["Regions",
+   "The World Bank's own classification, revised in 2024 when Pakistan and Afghanistan left South Asia."],
+];
+
 function Method({ bundle }) {
   return (
-    <section style={{ marginTop: 40, maxWidth: 860, fontSize: "16px", lineHeight: 1.6, color: "var(--ink-soft)" }}>
-      <h3 style={{ fontSize: "21px", marginBottom: 10 }}>Notes on reading this</h3>
-      <p style={{ marginTop: 0 }}>
-        Values stay in their own units; the <strong>glyph</strong> beside them does not — it
-        reports position against the benchmark on a scale every metric shares. Where a metric
-        can be judged better or worse, a <strong>sparkline's</strong> dotted line is that row's
-        benchmark and the trace is coloured by which side of it each year fell on. Sparklines
-        are self-scaled, so shape is comparable between rows but height never is.
-      </p>
-      <p>
-        <strong>Change</strong> is a percentage change, except for metrics already measured in
-        percent, which report percentage <em>points</em> — unemployment moving 4.0% to 4.4% is
-        not "up 10%". Rows are ordered by <strong>GDP descending</strong> rather than by the
-        focus metric, so switching metrics never reshuffles the table and two metrics can be
-        compared by scanning the same row. The table opens with the <strong>World</strong>, and each
-        section with the Bank's published <strong>regional aggregate</strong> — shown for
-        reference but excluded from the country median, since letting a region's total into
-        the median of its own members would move the very line it exists to illustrate.
-      </p>
-      <p>
-        <strong>Regional subtotals are not scored against countries.</strong> A region is not a
-        big country: its GDP is the sum of its members, so measuring it against them would make
-        every region "clearly better" by arithmetic rather than by finding. Regions are measured
-        against the <strong>World</strong> instead — the only peer a region has, and the same
-        line their sparklines are drawn against. Where even that comparison is empty the glyph
-        stays grey and says so: no region can exceed the world total, so GDP, population and net
-        migration carry a share of the world instead of a verdict, and the World's own row has
-        nothing above it at all.
-      </p>
-      <p>
-        <strong>Inflation is scored against a target band</strong>, not against its peers, so
-        it reads red on <em>both</em> sides: 0.1% and 3.2% are both misses — one too cold, one
-        too hot — and they score identically. Two countries moving in opposite directions can
-        therefore both be red. Hover the value and it names which side of the band it fell on.
-        A hairline separates the metric columns wherever the category changes; each column's
-        hover card opens with the category it belongs to.
-      </p>
-      <p style={{ fontSize: "14.5px", color: "var(--warm-grey)", borderTop: "1px solid var(--rule)", paddingTop: 14 }}>
+    <section style={{ marginTop: 40, maxWidth: 900, fontSize: "16px", color: "var(--ink-soft)" }}>
+      <h3 style={{ fontSize: "21px", marginBottom: 12 }}>Glossary</h3>
+      <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(150px, 190px) 1fr", columnGap: 22 }}>
+        {GLOSSARY.map(([term, def]) => (
+          <div key={term} style={{ display: "contents" }}>
+            <dt style={{ fontWeight: 600, color: "var(--ink)", padding: "7px 0", lineHeight: 1.4 }}>{term}</dt>
+            <dd style={{ margin: 0, padding: "7px 0", lineHeight: 1.4 }}>{def}</dd>
+          </div>
+        ))}
+      </dl>
+      <p style={{ fontSize: "14.5px", lineHeight: 1.5, color: "var(--warm-grey)",
+                  borderTop: "1px solid var(--rule)", marginTop: 18, paddingTop: 14 }}>
         Source:{" "}
         <a href={DATASET_URL} target="_blank" rel="noopener noreferrer"
            style={{ color: "var(--blue-maven)" }}>
           {bundle.source}
         </a>, CC&nbsp;BY&nbsp;4.0. Bundle generated {bundle.generated}. Open any row to reach the
-        World Bank's own page for that country and metric. Values are each country's
-        most recent available observation — not always the same year, which is why the year is
-        printed beneath every value. Regions follow the World Bank's own classification, revised
-        in 2024 when Pakistan and Afghanistan moved out of South Asia.
+        World Bank's own page for that country and metric.
       </p>
     </section>
   );

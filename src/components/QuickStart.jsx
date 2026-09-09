@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import KpiGlyph from "./KpiGlyph.jsx";
 import { PERF } from "../lib/kpi.js";
-import { DATASET_URL } from "../lib/sources.js";
 
 /* --------------------------------------------------------------------------
    First-run quick start.
@@ -39,30 +38,26 @@ function markSeen() {
   }
 }
 
-/* Ordered better → near → worse so the first three read as one scale. The
-   middle row earns its place despite the word budget: without it, "above the
-   line, blue" implies every above-the-line glyph is blue, which is false.
+/* Apple-Tips terse: the swatch carries the colour, so the words carry only the
+   meaning. Naming the colour beside a picture of it spends a word to say what
+   the reader can already see.
 
-   Colour is named in plain words — blue, yellow, red — not by the brand names
-   for these tokens (Blue Maven, Golden Blaze, Red Cerise). A reader is being
-   told what they are looking at, not what it is called in the brand book.
-
-   Position is named alongside colour on the two rows that have one. Colour is
-   never the only channel in the dashboard itself, and an explanation that
-   dropped "above/below the line" would quietly make it the only channel here. */
+   Position still gets named on the two rows that have one — "above the line",
+   "below". Colour is never the only channel in the table, and an explanation
+   that leaned on the swatch alone would quietly make it the only channel here. */
 const ICONS = [
-  { glyphs: [{ perf: PERF.STRONG,  deviation: 0.8 }],  text: "Above the line, blue — better than the benchmark" },
-  { glyphs: [{ perf: PERF.MID,     deviation: 0.2 }],  text: "Yellow — close to it" },
-  { glyphs: [{ perf: PERF.WEAK,    deviation: -0.8 }], text: "Below, red — worse" },
-  { glyphs: [{ perf: PERF.NEUTRAL, deviation: 0.7 }],  text: "Grey — neither better nor worse" },
-  { glyphs: [{ perf: PERF.NONE,    deviation: 0 }],    text: "No recent reading" },
+  { perf: PERF.STRONG,  deviation: 0.8,  text: "Above the line — better" },
+  { perf: PERF.MID,     deviation: 0.2,  text: "Near the benchmark" },
+  { perf: PERF.WEAK,    deviation: -0.8, text: "Below — worse" },
+  { perf: PERF.NEUTRAL, deviation: 0.7,  text: "Neither better nor worse" },
+  { perf: PERF.NONE,    deviation: 0,    text: "No recent data" },
 ];
 
 const CLICKS = [
-  ["Hover a column heading", "what the metric means"],
-  ["Click it", "moves it into the value columns"],
-  ["Click a row", "that country in full"],
-  ["Filters", "change countries, metrics, view"],
+  "Hover for metric details",
+  "Click a heading to focus it",
+  "Click a row for country detail",
+  "Filters to change the view",
 ];
 
 export default function QuickStart({ onClose }) {
@@ -131,21 +126,20 @@ export default function QuickStart({ onClose }) {
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
-          <h2 id="qs-title" style={{ fontSize: "26px", lineHeight: 1.15, paddingRight: 34 }}>
-            Quick start
+          <h2 id="qs-title" style={{ fontSize: "25px", lineHeight: 1.15, paddingRight: 34 }}>
+            How to Use This Dashboard
           </h2>
+          <p style={{ margin: "5px 0 0", fontSize: "16px", fontWeight: 300, color: "var(--cool-grey)" }}>
+            Fifteen metrics, one scale.
+          </p>
         </div>
 
         <div style={{ padding: "20px 28px 4px" }}>
           <div className="eyebrow" style={{ color: "var(--blue-maven)" }}>How to read the icons</div>
           <div style={{ marginTop: 10 }}>
             {ICONS.map((r) => (
-              <div key={r.text} style={{ display: "flex", alignItems: "center", gap: 14, padding: "7px 0" }}>
-                <span style={{ flexShrink: 0, display: "inline-flex", width: 32 }}>
-                  {r.glyphs.map((g, i) => (
-                    <KpiGlyph key={i} perf={g.perf} deviation={g.deviation} size={30} />
-                  ))}
-                </span>
+              <div key={r.text} style={{ display: "flex", alignItems: "center", gap: 14, padding: "6px 0" }}>
+                <KpiGlyph perf={r.perf} deviation={r.deviation} size={30} />
                 <span style={{ fontSize: "17px", lineHeight: 1.3 }}>{r.text}</span>
               </div>
             ))}
@@ -154,24 +148,15 @@ export default function QuickStart({ onClose }) {
             More fill = further from the benchmark.
           </div>
 
-          <div className="eyebrow" style={{ color: "var(--blue-maven)", marginTop: 26 }}>What to click</div>
-          <div style={{ marginTop: 8 }}>
-            {CLICKS.map(([action, result]) => (
-              <div key={action} style={{ display: "flex", gap: 10, padding: "6px 0", fontSize: "17px", lineHeight: 1.3 }}>
-                <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{action}</span>
-                <span style={{ color: "var(--warm-grey)" }}>{result}</span>
-              </div>
+          <div className="eyebrow" style={{ color: "var(--blue-maven)", marginTop: 24 }}>What to click</div>
+          <ul style={{ margin: "10px 0 0", padding: 0, listStyle: "none" }}>
+            {CLICKS.map((c) => (
+              <li key={c} style={{ display: "flex", gap: 11, padding: "5px 0", fontSize: "17px", lineHeight: 1.3 }}>
+                <span aria-hidden="true" style={{ color: "var(--blue-maven)", flexShrink: 0 }}>&bull;</span>
+                <span>{c}</span>
+              </li>
             ))}
-          </div>
-
-          <p style={{ fontSize: "15px", lineHeight: 1.45, color: "var(--warm-grey)",
-                      borderTop: "1px solid var(--rule)", margin: "20px 0 0", padding: "12px 0 2px" }}>
-            World Bank{" "}
-            <a href={DATASET_URL} target="_blank" rel="noopener noreferrer"
-               style={{ color: "var(--blue-maven)" }}>
-              World Development Indicators
-            </a>{" "}· CC&nbsp;BY&nbsp;4.0
-          </p>
+          </ul>
         </div>
 
         <div style={{ padding: "4px 28px 24px", display: "flex", justifyContent: "flex-end" }}>
