@@ -249,10 +249,15 @@ What it means in practice here:
   became phrases, subtext under controls was deleted, the legend lost its hints.
   A future change that adds standing text to the main view is going the wrong
   way, whatever it explains.
-- The live tension worth naming: the quick start opens automatically and asks
-  for reading before anything can be looked at. It is the one surface that
-  makes the reader work first. If the marks are doing their job it should not
-  need to auto-open at all.
+- The one deliberate exception is the quick start, and it is settled: it opens
+  automatically, and it stays that way. It does make the reader work first,
+  which the principle otherwise forbids. The reason it earns the exception is
+  the audience — most first-time viewers arrive cold from a blog post about the
+  dashboard, and a five-second orientation is worth the interruption for
+  someone who has never seen a mark like this. Do not "fix" this by removing
+  the auto-open; that trade has been weighed. It is capped at ~84 words and
+  550px for the same reason, and it should stay near there: the exception is
+  for a glance, not for a tutorial.
 
 ## Brand tokens
 
