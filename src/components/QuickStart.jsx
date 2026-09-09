@@ -105,13 +105,13 @@ export default function QuickStart({ onClose }) {
         onClick={(e) => e.stopPropagation()}
         className="panel-in"
         style={{
-          background: "var(--white)", borderRadius: 14, maxWidth: 540, width: "100%",
+          background: "var(--white)", borderRadius: 16, maxWidth: 620, width: "100%",
           maxHeight: "92vh", overflowY: "auto", outline: "none",
           boxShadow: "0 24px 70px rgba(10,16,68,.35)",
         }}
       >
         <div style={{ background: "var(--blue-raven)", color: "var(--white)",
-                      padding: "14px 28px 15px", position: "relative" }}>
+                      padding: "20px 34px 21px", position: "relative" }}>
           {/* Escape, the backdrop and "Start exploring" all dismiss this, but a
               modal with no visible way out still reads as a trap on first
               sight — and first sight is the only time this one is shown. */}
@@ -141,15 +141,15 @@ export default function QuickStart({ onClose }) {
               the dashboard rather than in the dashboard. Someone opening this
               wants to know it is about countries and how they are doing. */}
           <p style={{ margin: "3px 0 0", fontSize: "16px", fontWeight: 300, color: "var(--cool-grey)", lineHeight: 1.35 }}>
-            How countries and regions compare, across fifteen measures of development.
+            Compare Regions and Countries across 15 metrics.
           </p>
         </div>
 
-        <div style={{ padding: "13px 28px 4px" }}>
+        <div style={{ padding: "20px 34px 6px" }}>
           <div className="eyebrow" style={{ color: "var(--blue-maven)" }}>How to read the icons</div>
-          <div style={{ marginTop: 7 }}>
+          <div style={{ marginTop: 9 }}>
             {ICONS.map((r) => (
-              <div key={r.text} style={{ display: "flex", alignItems: "center", gap: 13, padding: "3px 0" }}>
+              <div key={r.text} style={{ display: "flex", alignItems: "center", gap: 14, padding: "5px 0" }}>
                 <KpiGlyph perf={r.perf} deviation={r.deviation} size={26} />
                 <span style={{ fontSize: "17px", lineHeight: 1.3 }}>{r.text}</span>
               </div>
@@ -159,10 +159,10 @@ export default function QuickStart({ onClose }) {
             Fill = position. Colour = verdict. More fill, further away.
           </div>
 
-          <div className="eyebrow" style={{ color: "var(--blue-maven)", marginTop: 17 }}>What to click</div>
-          <ul style={{ margin: "7px 0 0", padding: 0, listStyle: "none" }}>
+          <div className="eyebrow" style={{ color: "var(--blue-maven)", marginTop: 21 }}>What to click</div>
+          <ul style={{ margin: "9px 0 0", padding: 0, listStyle: "none" }}>
             {CLICKS.map((c) => (
-              <li key={c} style={{ display: "flex", gap: 11, padding: "3px 0", fontSize: "17px", lineHeight: 1.3 }}>
+              <li key={c} style={{ display: "flex", gap: 12, padding: "5px 0", fontSize: "17px", lineHeight: 1.3 }}>
                 <span aria-hidden="true" style={{ color: "var(--blue-maven)", flexShrink: 0 }}>&bull;</span>
                 <span>{c}</span>
               </li>
@@ -170,12 +170,12 @@ export default function QuickStart({ onClose }) {
           </ul>
         </div>
 
-        <div style={{ padding: "2px 28px 18px", display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ padding: "6px 34px 24px", display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
             style={{
               background: "var(--blue-maven)", color: "var(--white)", border: "none",
-              borderRadius: 9, padding: "10px 24px", fontSize: "17px", fontWeight: 500,
+              borderRadius: 9, padding: "11px 26px", fontSize: "17px", fontWeight: 500,
               cursor: "pointer", fontFamily: "inherit",
             }}
           >

@@ -255,9 +255,11 @@ What it means in practice here:
   the audience — most first-time viewers arrive cold from a blog post about the
   dashboard, and a five-second orientation is worth the interruption for
   someone who has never seen a mark like this. Do not "fix" this by removing
-  the auto-open; that trade has been weighed. It is capped at ~84 words and
-  550px for the same reason, and it should stay near there: the exception is
-  for a glance, not for a tutorial.
+  the auto-open; that trade has been weighed. It is capped at ~80 words for the
+  same reason, and must keep fitting a laptop window without scrolling — it
+  is 606px tall against a 92vh cap, so it fits any viewport 660px and up.
+  Measure after any change to it; the exception is for a glance, not for a
+  tutorial.
 
 ## Brand tokens
 
