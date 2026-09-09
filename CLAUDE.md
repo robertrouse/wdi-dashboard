@@ -225,6 +225,35 @@ Note the hover cards cannot hold links — `Tooltip` sets `pointerEvents: none`
 on its card so it never eats the mouse — which is why the source links live in
 the modal rather than on the column headers.
 
+## Robert's design principle
+
+> "Don't make me click" and "don't make me read." Let there be as little effort
+> necessary to understand the basics. If someone wants the particulars, they
+> will work for it, and that work should be 1-2 clicks away.
+
+This is the rule the rest of the UI decisions answer to, and it is the same
+standard the BBOD chapter praises the original dashboard for meeting — the
+judges singled out "discoverability", that they could figure the KPIs out
+"without needing any instructions."
+
+What it means in practice here:
+
+- The basics are carried by the marks, not by prose. Fill, colour and the
+  printed number answer "how is this doing?" with nothing to open and nothing
+  to read.
+- Anything explanatory is a summary at the point of use and complete one layer
+  down. Hover shows a written one- or two-sentence definition and caveat; the
+  row detail carries the World Bank's full wording, verbatim, collapsed. Two
+  clicks to the particulars, zero to the gist.
+- Every reduction pass in this project has been in service of this. Sentences
+  became phrases, subtext under controls was deleted, the legend lost its hints.
+  A future change that adds standing text to the main view is going the wrong
+  way, whatever it explains.
+- The live tension worth naming: the quick start opens automatically and asks
+  for reading before anything can be looked at. It is the one surface that
+  makes the reader work first. If the marks are doing their job it should not
+  need to auto-open at all.
+
 ## Brand tokens
 
 Defined in `src/index.css`. Kanit throughout, loaded from the Google Fonts CDN
