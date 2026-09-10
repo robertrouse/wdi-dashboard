@@ -33,6 +33,16 @@ import { useMemo, useState } from "react";
    hide the fact that the view is filtered.
    -------------------------------------------------------------------------- */
 
+// The focus-metric picker draws its own chevron: the native one renders at
+// around 10px hard against the border, which reads as cramped next to 16px
+// type in a 46px-tall control. Blue Raven is baked in rather than tokenised
+// because a data URI cannot see a CSS variable — if --ink ever moves, move
+// this too. Encoded, not raw, so the `#` never terminates the URL.
+const CHEVRON =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'" +
+  " fill='none' stroke='%230A1044' stroke-width='2.25' stroke-linecap='round'" +
+  " stroke-linejoin='round'%3E%3Cpath d='m5 9 7 7 7-7'/%3E%3C/svg%3E\")";
+
 const S = {
   section: { marginBottom: 26 },
   h: {
@@ -182,9 +192,15 @@ export default function FilterPanel({
         <span style={S.h}>Focus metric</span>
         <select value={focusId} onChange={(e) => setFocus(e.target.value)}
           style={{
-            width: "100%", padding: "10px 12px", fontSize: "16px", fontWeight: 500,
+            width: "100%", padding: "10px 46px 10px 12px", fontSize: "16px", fontWeight: 500,
             border: "1.5px solid var(--blue-maven)", borderRadius: 8,
-            background: "var(--white)", color: "var(--blue-raven)", cursor: "pointer",
+            color: "var(--blue-raven)", cursor: "pointer",
+            // The browser's own chevron is tiny and sits hard against the
+            // border. Ours is drawn at 22px with 16px of air to its right,
+            // which is why the padding above is asymmetric.
+            appearance: "none", WebkitAppearance: "none", MozAppearance: "none",
+            background: `var(--white) ${CHEVRON} no-repeat right 16px center`,
+            backgroundSize: "22px 22px",
           }}>
           {indicators.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
         </select>
