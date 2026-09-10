@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import KpiGlyph from "./KpiGlyph.jsx";
 import Value from "./Value.jsx";
 import Sparkline from "./Sparkline.jsx";
@@ -105,6 +105,32 @@ export default function Matrix({
   const glyph = xs ? GLYPH_SIZE - 6 : GLYPH_SIZE;
   const regionView = rows.some((r) => r.kind === "region");
 
+  /* The trend header used to print bundle.yearSpan — the widest window ANY
+     metric fills. That is true for three of the fifteen (population,
+     urbanisation, net migration) and wrong for the other twelve: electricity
+     access, life expectancy, under-5 mortality and emissions all run 2015–2024
+     and were labelled 2016–2025, and homicides ends in 2023.
+
+     The window is a property of the metric, not of the bundle, so it is
+     measured from the focus metric's own trends over the rows on screen. For
+     the survey-based metrics those rows genuinely disagree — literacy has
+     thirteen different start years across countries — so this is the union,
+     the outer bound inside which every line on screen falls. Each sparkline
+     still scales its x-axis to its own points (Sparkline.jsx), exactly as it
+     scales its y-axis to its own values, so the header bounds the column
+     rather than describing a shared axis. `t` is sorted ascending in both
+     build paths, so first and last are the ends. */
+  const trendSpan = useMemo(() => {
+    let lo = Infinity, hi = -Infinity;
+    for (const row of rows) {
+      const t = row.get(focus.id)?.t;
+      if (!t || !t.length) continue;
+      if (t[0][0] < lo) lo = t[0][0];
+      if (t[t.length - 1][0] > hi) hi = t[t.length - 1][0];
+    }
+    return Number.isFinite(lo) ? [lo, hi] : bundle.yearSpan;
+  }, [rows, focus.id, bundle.yearSpan]);
+
   /* A hairline where the category changes — Economy, People, Health & Education
      and so on. The glossary already orders the metrics by group, so the blocks
      are contiguous and this only makes visible a structure that was already
@@ -141,7 +167,7 @@ export default function Matrix({
             <th style={{ ...th, textAlign: "right", minWidth: showGlyphs ? (md ? 108 : 148) : xs ? 60 : 80 }}>Change</th>
             {showTrend && (
               <th style={{ ...th, textAlign: "left", minWidth: layout === "lg" ? 178 : 150, paddingLeft: layout === "lg" ? 18 : 10 }}>
-                {bundle.yearSpan[0]}–{bundle.yearSpan[1]} trend
+                {trendSpan[0]}–{trendSpan[1]} trend
               </th>
             )}
             {glyphInds.map((ind, gi) => {
