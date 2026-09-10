@@ -95,6 +95,12 @@ export default function FilterPanel({
      fallback is to say so rather than to claim a copy that did not happen —
      the URL is still there to select by hand. */
   const [copyFailed, setCopyFailed] = useState(false);
+  // Chrome treats a <select> as always focus-visible, so the global keyboard
+  // ring in index.css fires on a plain mouse click too — a cyan halo orbiting
+  // the maven border, on the one control nobody had to tab to. No CSS selector
+  // separates the two cases, so the modality is tracked here: pointer presses
+  // suppress the ring, and the first keystroke brings it back.
+  const [pointerFocus, setPointerFocus] = useState(false);
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -191,6 +197,9 @@ export default function FilterPanel({
       <div style={S.section}>
         <span style={S.h}>Focus metric</span>
         <select value={focusId} onChange={(e) => setFocus(e.target.value)}
+          onMouseDown={() => setPointerFocus(true)}
+          onKeyDown={() => setPointerFocus(false)}
+          onBlur={() => setPointerFocus(false)}
           style={{
             width: "100%", padding: "10px 46px 10px 12px", fontSize: "16px", fontWeight: 500,
             border: "1.5px solid var(--blue-maven)", borderRadius: 8,
@@ -201,6 +210,9 @@ export default function FilterPanel({
             appearance: "none", WebkitAppearance: "none", MozAppearance: "none",
             background: `var(--white) ${CHEVRON} no-repeat right 16px center`,
             backgroundSize: "22px 22px",
+            // undefined, not a colour: it leaves the rule in index.css to
+            // apply, where an inline value would beat it.
+            outline: pointerFocus ? "none" : undefined,
           }}>
           {indicators.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
         </select>
